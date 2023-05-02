@@ -47,27 +47,21 @@ namespace ObjectInfo.Brokers.ObjectInfo
     public class ObjectInfoBroker : IObjectInfoBroker
     {
         public objInfo.IObjInfo GetObjectInfo(object obj, IConfigInfo configuration=null)
-        {            
-
-            objInfo.ObjInfo objInfo = new objInfo.ObjInfo();
-            objInfo.Configuration = configuration!=null ? configuration: new ConfigInfo();
-
-            objInfo.TypeInfo = GetTypeInfo(obj);
-            objInfo.TypeInfo.PropInfos = new List<IPropInfo>();
-            objInfo.TypeInfo.MethodInfos = new List<IMethodInfo>();
-            objInfo.TypeInfo.ImplementedInterfaces = new List<ITypeInfo>();
+        {
             Type type = obj.GetType();
             var propInfos = type.GetProperties();
             var methodInfos = type.GetMethods();
             var intfcs = type.GetInterfaces();
             var attrs = type.GetCustomAttributes(false);
 
+            objInfo.ObjInfo objInfo = new objInfo.ObjInfo();
+            objInfo.Configuration = configuration!=null ? configuration: new ConfigInfo();
+
+            objInfo.TypeInfo = GetTypeInfo(obj);
+
             GetTypeProps(obj, objInfo, propInfos);
-
             GetTypeMethods(objInfo, type, methodInfos);
-
             GetTypelIntfcs(objInfo, intfcs);
-
             GetTypeAttrs(objInfo, attrs);
 
             return objInfo;
@@ -137,6 +131,9 @@ namespace ObjectInfo.Brokers.ObjectInfo
         {
             System.Reflection.TypeInfo typeInfo = obj.GetType().GetTypeInfo();
             Models.TypeInfo.TypeInfo modeltypeInfo = new Models.TypeInfo.TypeInfo();
+            modeltypeInfo.PropInfos = new List<IPropInfo>();
+            modeltypeInfo.MethodInfos = new List<IMethodInfo>();
+            modeltypeInfo.ImplementedInterfaces = new List<ITypeInfo>();
             modeltypeInfo.CustomAttrs = new List<ITypeInfo>();
             modeltypeInfo.Namespace = typeInfo.Namespace;
             modeltypeInfo.Name = typeInfo.Name;
