@@ -36,7 +36,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using ObjectInfo.Models.MethodInfo;
-using objInfo = ObjectInfo.Models.ObjectInfo;
+using ObjInfo = ObjectInfo.Models.ObjectInfo;
 using ObjectInfo.Models.PropInfo;
 using ObjectInfo.Models.TypeInfo;
 using ObjectInfo.Models.ObjectInfo;
@@ -46,7 +46,7 @@ namespace ObjectInfo.Brokers.ObjectInfo
 {
     public class ObjectInfoBroker : IObjectInfoBroker
     {
-        public objInfo.IObjInfo GetObjectInfo(object obj, IConfigInfo configuration=null)
+        public ObjInfo.IObjInfo GetObjectInfo(object obj, IConfigInfo configuration=null)
         {
             Type type = obj.GetType();
             var propInfos = type.GetProperties();
@@ -54,7 +54,7 @@ namespace ObjectInfo.Brokers.ObjectInfo
             var intfcs = type.GetInterfaces();
             var attrs = type.GetCustomAttributes(false);
 
-            objInfo.ObjInfo objInfo = new objInfo.ObjInfo();
+            ObjInfo.ObjInfo objInfo = new ObjInfo.ObjInfo();
             objInfo.Configuration = configuration!=null ? configuration: new ConfigInfo();
 
             objInfo.TypeInfo = GetTypeInfo(obj);
@@ -67,7 +67,7 @@ namespace ObjectInfo.Brokers.ObjectInfo
             return objInfo;
         }
 
-        private void GetTypelIntfcs(ObjInfo objInfo, Type[] intfcs)
+        private void GetTypelIntfcs(ObjInfo.ObjInfo objInfo, Type[] intfcs)
         {
             foreach (var intfc in intfcs)
             {
@@ -75,7 +75,7 @@ namespace ObjectInfo.Brokers.ObjectInfo
             }
         }
 
-        private void GetTypeAttrs(ObjInfo objInfo, object[] attrs)
+        private void GetTypeAttrs(ObjInfo.ObjInfo objInfo, object[] attrs)
         {
             foreach (var attr in attrs)
             {
@@ -85,7 +85,7 @@ namespace ObjectInfo.Brokers.ObjectInfo
             }
         }
 
-        private void GetTypeMethods(ObjInfo objInfo, Type type, System.Reflection.MethodInfo[] methodInfos)
+        private void GetTypeMethods(ObjInfo.ObjInfo objInfo, Type type, System.Reflection.MethodInfo[] methodInfos)
         {
             foreach (var methodInfo in methodInfos)
             {
@@ -102,7 +102,7 @@ namespace ObjectInfo.Brokers.ObjectInfo
             }
         }
 
-        private void GetTypeProps(object obj, ObjInfo objInfo, PropertyInfo[] propInfos)
+        private void GetTypeProps(object obj, ObjInfo.ObjInfo objInfo, PropertyInfo[] propInfos)
         {
             foreach (var prop in propInfos)
             {
@@ -148,7 +148,7 @@ namespace ObjectInfo.Brokers.ObjectInfo
             return modeltypeInfo;
         }
 
-        public IPropInfo GetPropInfo(ObjInfo objInfo, object obj, PropertyInfo _propInfo)
+        public IPropInfo GetPropInfo(ObjInfo.ObjInfo objInfo, object obj, PropertyInfo _propInfo)
         {
             PropInfo propInfo = new PropInfo();
             propInfo.Name = _propInfo.Name;
