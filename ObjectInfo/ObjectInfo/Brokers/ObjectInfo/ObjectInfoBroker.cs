@@ -116,13 +116,13 @@ namespace ObjectInfo.Brokers.ObjectInfo
             Models.TypeInfo.TypeInfo modeltypeInfo = new Models.TypeInfo.TypeInfo();
             modeltypeInfo.Namespace = typeInfo.Namespace;
             modeltypeInfo.Name = typeInfo.Name;
-            modeltypeInfo.Assembly = typeInfo.Assembly;
+            modeltypeInfo.Assembly = typeInfo.Assembly != null ? typeInfo.Assembly.FullName : null;
             modeltypeInfo.AssemblyQualifiedName = typeInfo.AssemblyQualifiedName;
             modeltypeInfo.FullName = typeInfo.FullName;
-            modeltypeInfo.BaseType = typeInfo.BaseType;
-            modeltypeInfo.Module = typeInfo.Module;
+            modeltypeInfo.BaseType = typeInfo.BaseType!= null ? typeInfo.BaseType.Name : null ;
+            modeltypeInfo.Module = typeInfo.Module != null ? typeInfo.Module.Name : null;
             modeltypeInfo.GUID = typeInfo.GUID;
-            modeltypeInfo.UnderlyingSystemType = typeInfo.UnderlyingSystemType;
+            modeltypeInfo.UnderlyingSystemType = typeInfo.UnderlyingSystemType != null ? typeInfo.UnderlyingSystemType.Name : null;
 
             return modeltypeInfo;
         }
@@ -137,13 +137,13 @@ namespace ObjectInfo.Brokers.ObjectInfo
             modeltypeInfo.CustomAttrs = new List<ITypeInfo>();
             modeltypeInfo.Namespace = typeInfo.Namespace;
             modeltypeInfo.Name = typeInfo.Name;
-            modeltypeInfo.Assembly = typeInfo.Assembly;
+            modeltypeInfo.Assembly = typeInfo.Assembly != null ? typeInfo.Assembly.FullName : null;
             modeltypeInfo.AssemblyQualifiedName = typeInfo.AssemblyQualifiedName;
             modeltypeInfo.FullName = typeInfo.FullName;
-            modeltypeInfo.BaseType = typeInfo.BaseType;
-            modeltypeInfo.Module = typeInfo.Module;
+            modeltypeInfo.BaseType = typeInfo.BaseType != null ? typeInfo.BaseType.Name : null;
+            modeltypeInfo.Module = typeInfo.Module.Name;
             modeltypeInfo.GUID = typeInfo.GUID;
-            modeltypeInfo.UnderlyingSystemType = typeInfo.UnderlyingSystemType;
+            modeltypeInfo.UnderlyingSystemType = typeInfo.UnderlyingSystemType != null ? typeInfo.UnderlyingSystemType.Name : null;
 
             return modeltypeInfo;
         }
@@ -155,9 +155,9 @@ namespace ObjectInfo.Brokers.ObjectInfo
             propInfo.CanWrite = _propInfo.CanWrite;
             propInfo.CanRead = _propInfo.CanRead;
             propInfo.Value = _propInfo.GetValue(obj);
-            propInfo.PropertyType = _propInfo.PropertyType;
-            propInfo.DeclaringType = _propInfo.DeclaringType;
-            propInfo.ReflectedType = _propInfo.ReflectedType;
+            propInfo.PropertyType = _propInfo.PropertyType!=null ? _propInfo.PropertyType.Name : null;
+            propInfo.DeclaringType = _propInfo.DeclaringType != null ? _propInfo.DeclaringType.Name : null;
+            propInfo.ReflectedType = _propInfo.ReflectedType != null ? _propInfo.ReflectedType.Name : null;
             propInfo.CustomAttrs = new List<ITypeInfo>();
             var attrs = _propInfo.GetCustomAttributes(false);
 
@@ -178,8 +178,8 @@ namespace ObjectInfo.Brokers.ObjectInfo
         {
             Models.MethodInfo.MethodInfo methodInfo = new Models.MethodInfo.MethodInfo();
             methodInfo.Name = _methodInfo.Name;
-            methodInfo.ReflectedType = _methodInfo.ReflectedType;
-            methodInfo.DeclaringType = _methodInfo.DeclaringType;
+            methodInfo.ReflectedType = _methodInfo.ReflectedType != null ? _methodInfo.ReflectedType.Name : null;
+            methodInfo.DeclaringType = _methodInfo.DeclaringType != null ? _methodInfo.DeclaringType.Name : null;
             methodInfo.CustomAttrs = new List<ITypeInfo>();
             MemberInfo[] myMembers = _methodInfo.DeclaringType.GetMembers();
 

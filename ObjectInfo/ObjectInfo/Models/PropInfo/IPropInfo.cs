@@ -39,10 +39,10 @@ namespace ObjectInfo.Models.PropInfo
     {
         bool CanRead { get; }
         bool CanWrite { get; }
-        Type DeclaringType { get; }
+        string DeclaringType { get; }
         string Name { get; }
-        Type PropertyType { get; }
-        Type ReflectedType { get; }
+        string PropertyType { get; }
+        string ReflectedType { get; }
         object Value { get; set; }
     }
 }

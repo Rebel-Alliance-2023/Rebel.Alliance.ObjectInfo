@@ -12,11 +12,11 @@ namespace ObjectInfo.Models.MethodInfo
 {
     public class MethodInfo : IMethodInfo
     {
-        public Type DeclaringType { get; set; }
+        public string DeclaringType { get; set; }
 
         public string Name { get; set; }
 
-        public Type ReflectedType { get; set; }
+        public string ReflectedType { get; set; }
         public List<ITypeInfo> CustomAttrs { get; set; }
 
     }

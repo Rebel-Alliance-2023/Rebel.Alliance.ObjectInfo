@@ -42,23 +42,23 @@ namespace ObjectInfo.Models.TypeInfo
 {
     public class TypeInfo : ITypeInfo
     {
-        public Assembly Assembly { get; set; }
+        public string Assembly { get; set; }
 
         public string AssemblyQualifiedName { get; set; }
 
-        public Type BaseType { get; set; }
+        public string BaseType { get; set; }
 
         public string FullName { get; set; }
 
         public Guid GUID { get; set; }
 
-        public Module Module { get; set; }
+        public string Module { get; set; }
 
         public string Name { get; set; }
 
         public string Namespace { get; set; }
 
-        public Type UnderlyingSystemType { get; set; }
+        public string UnderlyingSystemType { get; set; }
         public List<ITypeInfo> CustomAttrs { get; set; }
         public List<IPropInfo> PropInfos { get; set; }
         public List<IMethodInfo> MethodInfos { get; set; }

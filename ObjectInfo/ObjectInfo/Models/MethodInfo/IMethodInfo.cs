@@ -37,8 +37,8 @@ namespace ObjectInfo.Models.MethodInfo
 {
     public interface IMethodInfo
     {
-        Type DeclaringType { get; set; }
+        string DeclaringType { get; set; }
         string Name { get; set; }
-        Type ReflectedType { get; set; }
+        string ReflectedType { get; set; }
     }
 }

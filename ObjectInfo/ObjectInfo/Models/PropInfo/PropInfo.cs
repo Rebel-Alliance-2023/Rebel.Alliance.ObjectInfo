@@ -45,13 +45,13 @@ namespace ObjectInfo.Models.PropInfo
 
         public bool CanWrite { get; set; }
 
-        public Type PropertyType { get; set; }
+        public string PropertyType { get; set; }
 
-        public Type DeclaringType { get; set; }
+        public string DeclaringType { get; set; }
 
         public string Name { get; set; }
 
-        public Type ReflectedType { get; set; }
+        public string ReflectedType { get; set; }
 
         public object Value { get; set; }
         public List<ITypeInfo> CustomAttrs { get; set; }
