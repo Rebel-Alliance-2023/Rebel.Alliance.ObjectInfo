@@ -31,6 +31,7 @@
 #endregion
 
 using System.Collections.Generic;
+using ObjectInfo.Models.ConfigInfo;
 using ObjectInfo.Models.MethodInfo;
 using ObjectInfo.Models.PropInfo;
 using ObjectInfo.Models.TypeInfo;
@@ -40,8 +41,6 @@ namespace ObjectInfo.Models.ObjectInfo
     public interface IObjInfo
     {
         ITypeInfo TypeInfo { get; set; }
-        List<IMethodInfo> MethodInfos { get; set; }
-        List<IPropInfo> PropInfos { get; set; }
-        List<ITypeInfo> ImplementedInterfaces { get; set; }
+        IConfigInfo Configuration { get; set; }
     }
 }

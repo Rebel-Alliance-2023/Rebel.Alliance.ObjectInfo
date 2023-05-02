@@ -39,53 +39,81 @@ using ObjectInfo.Models.MethodInfo;
 using objInfo = ObjectInfo.Models.ObjectInfo;
 using ObjectInfo.Models.PropInfo;
 using ObjectInfo.Models.TypeInfo;
+using ObjectInfo.Models.ObjectInfo;
+using ObjectInfo.Models.ConfigInfo;
 
 namespace ObjectInfo.Brokers.ObjectInfo
 {
     public class ObjectInfoBroker : IObjectInfoBroker
     {
-        public objInfo.IObjInfo GetObjectInfo(object obj)
-        {
+        public objInfo.IObjInfo GetObjectInfo(object obj, IConfigInfo configuration=null)
+        {            
+
             objInfo.ObjInfo objInfo = new objInfo.ObjInfo();
-            objInfo.PropInfos = new List<IPropInfo>();
-            objInfo.MethodInfos = new List<IMethodInfo>();
-            objInfo.ImplementedInterfaces = new List<ITypeInfo>();
+            objInfo.Configuration = configuration!=null ? configuration: new ConfigInfo();
+
+            objInfo.TypeInfo = GetTypeInfo(obj);
+            objInfo.TypeInfo.PropInfos = new List<IPropInfo>();
+            objInfo.TypeInfo.MethodInfos = new List<IMethodInfo>();
+            objInfo.TypeInfo.ImplementedInterfaces = new List<ITypeInfo>();
             Type type = obj.GetType();
             var propInfos = type.GetProperties();
             var methodInfos = type.GetMethods();
             var intfcs = type.GetInterfaces();
             var attrs = type.GetCustomAttributes(false);
 
-            foreach (var prop in propInfos)
-            {
-                objInfo.PropInfos.Add(GetPropInfo(obj, prop));
-            }
+            GetTypeProps(obj, objInfo, propInfos);
 
-            foreach (var methodInfo in methodInfos)
-            {
-                if (methodInfo.DeclaringType.Name != type.Name)
-                    continue;
-                if (methodInfo.Name.StartsWith("get_") || methodInfo.Name.StartsWith("set_"))
-                    continue;
+            GetTypeMethods(objInfo, type, methodInfos);
 
-                objInfo.MethodInfos.Add(GetMethodInfo(methodInfo));
-            }
+            GetTypelIntfcs(objInfo, intfcs);
 
+            GetTypeAttrs(objInfo, attrs);
+
+            return objInfo;
+        }
+
+        private void GetTypelIntfcs(ObjInfo objInfo, Type[] intfcs)
+        {
             foreach (var intfc in intfcs)
             {
-                objInfo.ImplementedInterfaces.Add(GetIntfcTypeInfo(intfc));
+                objInfo.TypeInfo.ImplementedInterfaces.Add(GetIntfcTypeInfo(intfc));
             }
+        }
 
-            objInfo.TypeInfo = GetTypeInfo(obj);
-
+        private void GetTypeAttrs(ObjInfo objInfo, object[] attrs)
+        {
             foreach (var attr in attrs)
             {
                 if (attr.GetType().Namespace.StartsWith("System"))
                     continue;
                 objInfo.TypeInfo.CustomAttrs.Add(GetTypeInfo(attr));
             }
+        }
 
-            return objInfo;
+        private void GetTypeMethods(ObjInfo objInfo, Type type, System.Reflection.MethodInfo[] methodInfos)
+        {
+            foreach (var methodInfo in methodInfos)
+            {
+                if(objInfo.Configuration.ShowSystemInfo == false)
+                {
+                    if (methodInfo.DeclaringType.Name != type.Name)
+                        continue;
+
+                    if (methodInfo.Name.StartsWith("get_") || methodInfo.Name.StartsWith("set_"))
+                        continue;
+                }
+
+                objInfo.TypeInfo.MethodInfos.Add(GetMethodInfo(methodInfo));
+            }
+        }
+
+        private void GetTypeProps(object obj, ObjInfo objInfo, PropertyInfo[] propInfos)
+        {
+            foreach (var prop in propInfos)
+            {
+                objInfo.TypeInfo.PropInfos.Add(GetPropInfo(objInfo, obj, prop));
+            }
         }
 
         private ITypeInfo GetIntfcTypeInfo(Type intfcType)
@@ -123,7 +151,7 @@ namespace ObjectInfo.Brokers.ObjectInfo
             return modeltypeInfo;
         }
 
-        public IPropInfo GetPropInfo(object obj, PropertyInfo _propInfo)
+        public IPropInfo GetPropInfo(ObjInfo objInfo, object obj, PropertyInfo _propInfo)
         {
             PropInfo propInfo = new PropInfo();
             propInfo.Name = _propInfo.Name;
@@ -138,8 +166,11 @@ namespace ObjectInfo.Brokers.ObjectInfo
 
             foreach (var attr in attrs)
             {
-                if (attr.GetType().Namespace.StartsWith("System"))
-                    continue;
+                if (objInfo.Configuration.ShowSystemInfo == false)
+                {
+                    if (attr.GetType().Namespace.StartsWith("System"))
+                        continue;
+                }
                 propInfo.CustomAttrs.Add(GetTypeInfo(attr));
             }
 

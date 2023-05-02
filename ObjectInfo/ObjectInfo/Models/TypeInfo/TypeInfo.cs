@@ -30,6 +30,8 @@
 // ---------------------------------------------------------------------------------- 
 #endregion
 
+using ObjectInfo.Models.MethodInfo;
+using ObjectInfo.Models.PropInfo;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -58,6 +60,9 @@ namespace ObjectInfo.Models.TypeInfo
 
         public Type UnderlyingSystemType { get; set; }
         public List<ITypeInfo> CustomAttrs { get; set; }
+        public List<IPropInfo> PropInfos { get; set; }
+        public List<IMethodInfo> MethodInfos { get; set; }
+        public List<ITypeInfo> ImplementedInterfaces { get; set; }
 
     }
 }
