@@ -61,5 +61,99 @@ namespace ObjectInfo.Unit.Tests
             actualObjectInfo.Should().BeEquivalentTo(expectedObjectInfo);
             actualObjectInfo3.Should().NotBeEquivalentTo(expectedObjectInfo);
         }
+        [Fact]
+        public void ShouldNavigateInterfaceInfo()
+        {
+            // given            
+            TestClass testClass = new TestClass() { Name = "Joe The Tester" };
+            IObjectInfoBroker objectInfoBroker = new ObjectInfoBroker();
+            ObjInfo? expectedObjectInfo = ObjectInfoService.RetrieveObjectInfo(objectInfoBroker, testClass);
+            // when
+            string? expectedImplementedInterface =
+                expectedObjectInfo!.TypeInfo!.ImplementedInterfaces!.FirstOrDefault(a => a.Name.Equals("ITestClass")).Name;
+            // then
+            expectedImplementedInterface.Should().NotBe(null);
+            expectedImplementedInterface.Equals("ITestClass");
+
+        }
+        [Fact]
+        public void ShouldNavigateMethodInfo()
+        {
+            // given            
+            TestClass testClass = new TestClass() { Name = "Joe The Tester" };
+            IObjectInfoBroker objectInfoBroker = new ObjectInfoBroker();
+            ObjInfo? expectedObjectInfo = ObjectInfoService.RetrieveObjectInfo(objectInfoBroker, testClass);
+            // when
+            string? expectedMethodInfo =
+                expectedObjectInfo!.TypeInfo!.MethodInfos!.FirstOrDefault(a => a.Name.Equals("EnsureCompliance")).Name;
+            // then
+            expectedMethodInfo.Should().NotBe(null);
+            expectedMethodInfo.Equals("EnsureCompliance");
+
+        }
+        [Fact]
+        public void ShouldNavigatePropInfo()
+        {
+            // given            
+            TestClass testClass = new TestClass() { Name = "Joe The Tester" };
+            IObjectInfoBroker objectInfoBroker = new ObjectInfoBroker();
+            ObjInfo? expectedObjectInfo = ObjectInfoService.RetrieveObjectInfo(objectInfoBroker, testClass);
+            // when
+            string? expectedPropInfo =
+                expectedObjectInfo!.TypeInfo!.PropInfos!.FirstOrDefault(a => a.Name.Equals("Name")).Name;
+            // then
+            expectedPropInfo.Should().NotBe(null);
+            expectedPropInfo.Equals("Name");
+
+        }
+        [Fact]
+        public void ShouldNavigateTypeAttributeInfo()
+        {
+            // given            
+            TestClass testClass = new TestClass() { Name = "Joe The Tester" };
+            IObjectInfoBroker objectInfoBroker = new ObjectInfoBroker();
+            ObjInfo? expectedObjectInfo = ObjectInfoService.RetrieveObjectInfo(objectInfoBroker, testClass);
+            // when
+            string? expectedAttrInfo =
+                expectedObjectInfo!.TypeInfo!.CustomAttrs!.FirstOrDefault(a => a.Name.Equals("IsStandardCompliant")).Name;
+            // then
+            expectedAttrInfo.Should().NotBe(null);
+            expectedAttrInfo.Equals("IsStandardCompliant");
+
+        }
+        [Fact]
+        public void ShouldNavigatePropertyAttributeInfo()
+        {
+            // given            
+            TestClass testClass = new TestClass() { Name = "Joe The Tester" };
+            IObjectInfoBroker objectInfoBroker = new ObjectInfoBroker();
+            ObjInfo? expectedObjectInfo = ObjectInfoService.RetrieveObjectInfo(objectInfoBroker, testClass);
+            // when
+            var expectedPropInfo =
+                expectedObjectInfo!.TypeInfo!.PropInfos!.FirstOrDefault(a => a.Name.Equals("Name"));
+            string? expectedAttrInfo =
+                expectedPropInfo.CustomAttrs!.FirstOrDefault(a => a.Name.Equals("IsStandardCompliant")).Name;
+            // then
+            expectedAttrInfo.Should().NotBe(null);
+            expectedAttrInfo.Equals("IsStandardCompliant");
+
+        }
+        [Fact]
+        public void ShouldNavigateMethodAttributeInfo()
+        {
+            // given            
+            TestClass testClass = new TestClass() { Name = "Joe The Tester" };
+            IObjectInfoBroker objectInfoBroker = new ObjectInfoBroker();
+            ObjInfo? expectedObjectInfo = ObjectInfoService.RetrieveObjectInfo(objectInfoBroker, testClass);
+            // when
+            var expectedMethInfo =
+                expectedObjectInfo!.TypeInfo!.MethodInfos!.FirstOrDefault(a => a.Name.Equals("EnsureCompliance"));
+            string? expectedAttrInfo =
+                expectedMethInfo.CustomAttrs!.FirstOrDefault(a => a.Name.Equals("IsStandardCompliant")).Name;
+            // then
+            expectedAttrInfo.Should().NotBe(null);
+            expectedAttrInfo.Equals("IsStandardCompliant");
+
+        }
     }
 }

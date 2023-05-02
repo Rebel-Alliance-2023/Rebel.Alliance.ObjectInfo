@@ -30,7 +30,9 @@
 // ---------------------------------------------------------------------------------- 
 #endregion
 
+using ObjectInfo.Models.TypeInfo;
 using System;
+using System.Collections.Generic;
 using System.Reflection;
 
 namespace ObjectInfo.Models.PropInfo
@@ -44,5 +46,6 @@ namespace ObjectInfo.Models.PropInfo
         string PropertyType { get; }
         string ReflectedType { get; }
         object Value { get; set; }
+        List<ITypeInfo> CustomAttrs { get; set; }
     }
 }
