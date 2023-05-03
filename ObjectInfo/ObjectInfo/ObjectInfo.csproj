@@ -2,6 +2,30 @@
 
   <PropertyGroup>
 	  <TargetFrameworks>netstandard2.0;netstandard2.1</TargetFrameworks>
+	  <Title>Rebel.Alliance.ObjectInfo</Title>
+	  <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+	  <Copyright>Copyright (c) The Rebel Alliance</Copyright>
+	  <Description>
+		  Presenting a minimalist library to easily query the DotNet Reflection API which multi-targets .NetStandard2.0 and .NetStandard2.1
+
+		  The ObjectInfo Broker queries the Reflection API and converts the data from the various internal types to string properties, so that any client can read the data without needing references to hidden or protected libraries. Thus, this library is ideal for developers developing an "Object Inspector" in Blazor for instance.
+
+		  The top-level object is ObjectInfo, which contains the TypeInfo class, which in turn contains ImplementedInterfaces, PropInfo, MethodInfo. The Type, Method and Property models, each, contain a CustomAttributes collection. Thus, all relevant Reflection meta-data rolls up under ObjectInfo.
+
+		  ObjectInfo also contains a configuration object. We will use this in the future to fine-tune the ObjectInfo broker to provide "slices" of the meta-data when performance is an issue.
+	  </Description>
+	  <PackageProjectUrl>https://github.com/Rebel-Alliance-2023/Rebel.Alliance.ObjectInfo</PackageProjectUrl>
+	  <PackageIcon>Rebel.Alliance.Icon.01.jpg</PackageIcon>
+	  <RepositoryUrl>https://github.com/Rebel-Alliance-2023/Rebel.Alliance.ObjectInfo</RepositoryUrl>
+	  <PackageTags>.NET;Reflection;DotNet</PackageTags>
+	  <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\..\..\_WorkingFiles\TheRebelAlliance\Rebel.Alliance.Icon.01.jpg">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
 
 </Project>

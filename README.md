@@ -6,7 +6,7 @@ Presenting a minimalist library to easily query the DotNet Reflection API which 
 
 The ObjectInfo Broker queries the Reflection API and converts the data from the various internal types to string properties, so that any client can read the data without needing references to hidden or protected libraries. Thus, this library is ideal for developers developing an "Object Inspector" in Blazor for instance.
 
-The top-level object is ObjectInfo, which contains the TypeInfo class, which in turn contains ImplementedInterfaces, PropInfo, MethodInfo. The last three classes, each, contain a CustomAttributes collection. Thus, all relevant Reflection meta-data rolls up under ObjectInfo.
+The top-level object is ObjectInfo, which contains the TypeInfo class, which in turn contains ImplementedInterfaces, PropInfo, MethodInfo. The Type, Method and Property models, each, contain a CustomAttributes collection. Thus, all relevant Reflection meta-data rolls up under ObjectInfo.
 
 ObjectInfo also contains a configuration object. We will use this in the future to fine-tune the ObjectInfo broker to provide "slices" of the meta-data when performance is an issue.
 
