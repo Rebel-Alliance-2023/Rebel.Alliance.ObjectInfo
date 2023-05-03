@@ -47,7 +47,7 @@ namespace ObjectInfo.Unit.Tests
             return (ObjInfo)objectInfoBroker.GetObjectInfo(obj);
         }
 
-        public class IsStandardCompliant : Attribute
+        public class IsCompliant : Attribute
         {
             public int LevelOfCompliance { get; set; }
         }
@@ -57,13 +57,13 @@ namespace ObjectInfo.Unit.Tests
             string Name { get; set; }
         }
 
-        [IsStandardCompliant(LevelOfCompliance = 10)]
+        [IsCompliant(LevelOfCompliance = 10)]
         public class TestClass : ITestClass
         {
-            [IsStandardCompliant(LevelOfCompliance = 10)]
+            [IsCompliant(LevelOfCompliance = 10)]
             public string Name { get; set; } = "Joe";
 
-            [IsStandardCompliant(LevelOfCompliance = 10)]
+            [IsCompliant(LevelOfCompliance = 10)]
             public bool EnsureCompliance()
             {
                 return true;
