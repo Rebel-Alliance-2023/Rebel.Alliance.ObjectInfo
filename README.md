@@ -2,11 +2,13 @@
 
 ![image](https://user-images.githubusercontent.com/3196088/235502858-8f615664-a196-45c8-bb07-df0ec6fc2e2a.png)
 
-Presenting a minimalist library to easily query the DotNet Reflection API which multi-targets .NetStandard2.0 and .NetStandar2.1
+Presenting a minimalist library to easily query the DotNet Reflection API which multi-targets .NetStandard2.0 and .NetStandard2.1
 
-The top-level object is ObjectInfo, which contains the TypeInfo class, which in turn contains ImplementedInterfaces,PropInfo, MethodInfo. The last three classes, each, contain a CustomAttributes collection. Thus, all relevant Reflection meta-data rolls up under ObjectInfo.
+The ObjectInfo Broker queries the Reflection API and converts the data from the various internal types to string properties, so that any client can read the data without needing references to hidden or protected libraries. Thus, this library is ideal for developers developing an "Object Inspector" in Blazor for instance.
 
-ObjectInfo also contains a configuration object. We will use this in the future to fine-tune the ObjectInfo broker to provided "slices" of the meta-data when performance is an issue.
+The top-level object is ObjectInfo, which contains the TypeInfo class, which in turn contains ImplementedInterfaces, PropInfo, MethodInfo. The last three classes, each, contain a CustomAttributes collection. Thus, all relevant Reflection meta-data rolls up under ObjectInfo.
+
+ObjectInfo also contains a configuration object. We will use this in the future to fine-tune the ObjectInfo broker to provide "slices" of the meta-data when performance is an issue.
 
 Usage (from our unit tests): 
 
