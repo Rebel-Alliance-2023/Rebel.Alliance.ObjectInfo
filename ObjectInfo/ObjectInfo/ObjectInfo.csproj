@@ -19,10 +19,15 @@
 	  <RepositoryUrl>https://github.com/Rebel-Alliance-2023/Rebel.Alliance.ObjectInfo</RepositoryUrl>
 	  <PackageTags>.NET;Reflection;DotNet</PackageTags>
 	  <PackageLicenseExpression>MIT</PackageLicenseExpression>
+	  <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
 
   <ItemGroup>
     <None Include="..\..\..\..\_WorkingFiles\TheRebelAlliance\Rebel.Alliance.Icon.01.jpg">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+    <None Include="..\..\README.md">
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
     </None>

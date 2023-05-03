@@ -2,6 +2,8 @@
 
 ![image](https://user-images.githubusercontent.com/3196088/235502858-8f615664-a196-45c8-bb07-df0ec6fc2e2a.png)
 
+https://www.nuget.org/packages/ObjectInfo/1.0.0
+
 Presenting a minimalist library to easily query the DotNet Reflection API which multi-targets .NetStandard2.0 and .NetStandard2.1
 
 The ObjectInfo Broker queries the Reflection API and converts the data from the various internal types to string properties, so that any client can read the data without needing references to hidden or protected libraries. Thus, this library is ideal for developers developing an "Object Inspector" in Blazor for instance.
