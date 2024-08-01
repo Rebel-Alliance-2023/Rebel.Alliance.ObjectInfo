@@ -3,7 +3,7 @@
   <PropertyGroup>
 	  <TargetFrameworks>netstandard2.0;netstandard2.1</TargetFrameworks>
 	  <Title>Rebel.Alliance.ObjectInfo</Title>
-	  <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+	  <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
 	  <Copyright>Copyright (c) The Rebel Alliance</Copyright>
 	  <Description>
 		  Presenting a minimalist library to easily query the DotNet Reflection API which multi-targets .NetStandard2.0 and .NetStandard2.1
@@ -22,15 +22,6 @@
 	  <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
 
-  <ItemGroup>
-    <None Include="..\..\..\..\_WorkingFiles\TheRebelAlliance\Rebel.Alliance.Icon.01.jpg">
-      <Pack>True</Pack>
-      <PackagePath>\</PackagePath>
-    </None>
-    <None Include="..\..\README.md">
-      <Pack>True</Pack>
-      <PackagePath>\</PackagePath>
-    </None>
-  </ItemGroup>
+
 
 </Project>
