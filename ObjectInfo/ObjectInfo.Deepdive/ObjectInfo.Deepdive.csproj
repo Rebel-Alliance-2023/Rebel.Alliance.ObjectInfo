@@ -1,0 +1,34 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<LangVersion>latest</LangVersion>
+		<Title>ObjectInfo.DeepDive</Title>
+		<Authors>The Rebel Alliance</Authors>
+		<Description>
+			ObjectInfo.DeepDive is an advanced code analysis extension for ObjectInfo, leveraging .NET 8 and Roslyn
+			to provide deep insights into .NET objects and codebases. It offers advanced analysis capabilities,
+			including method body inspection, cyclomatic complexity calculation, and a flexible plugin system for custom analyzers.
+		</Description>
+		<Copyright>Copyright (c) The Rebel Alliance</Copyright>
+		<PackageProjectUrl>https://github.com/Rebel-Alliance-2023/ObjectInfo.DeepDive</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/Rebel-Alliance-2023/ObjectInfo.DeepDive</RepositoryUrl>
+		<PackageTags>.NET;Reflection;CodeAnalysis;Roslyn</PackageTags>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\ObjectInfo\ObjectInfo.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.8.0" />
+		<PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.8.0" />
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
+		<PackageReference Include="Serilog" Version="4.0.1" />
+	</ItemGroup>
+
+</Project>
