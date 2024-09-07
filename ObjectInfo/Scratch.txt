@@ -1,0 +1,26 @@
+            var ilBytes = methodBody.GetILAsByteArray();
+            if (ilBytes == null)
+            {
+                _logger.Error($"Could not get IL bytes for {method.Name}");
+                return $"// Error: Could not get IL bytes for {method.Name}";
+            }
+
+            // Convert ilBytes back into IL code using Mono.Cecil
+            AssemblyDefinition assemblyDef = AssemblyDefinition.ReadAssembly(_testAssembly.Location);
+            MethodDefinition methodDef = assemblyDef.MainModule.GetType(fullTypeName).Methods.FirstOrDefault(m => m.Name == Name);
+            if (methodDef == null)
+            {
+                _logger.Error($"Could not find method {Name} in type {DeclaringType}");
+                return $"// Error: Could not find method {Name} in type {DeclaringType}";
+            }
+
+            StringBuilder ilCodeBuilder = new StringBuilder();
+            foreach (Instruction instruction in methodDef.Body.Instructions)
+            {
+                ilCodeBuilder.AppendLine(instruction.ToString());
+            }
+
+            string ilCode = ilCodeBuilder.ToString();
+
+            _logger.Information($"Successfully retrieved method body for {Name}");
+            return ilCode;

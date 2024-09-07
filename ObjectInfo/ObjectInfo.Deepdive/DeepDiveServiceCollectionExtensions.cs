@@ -10,15 +10,8 @@ namespace ObjectInfo.DeepDive
     {
         public static IServiceCollection AddObjectInfoDeepDive(this IServiceCollection services, DeepDiveConfiguration configuration = null)
         {
-            // Existing code...
-
-            return services;
-        }
-
-        public static IServiceCollection AddDeepDiveAnalyzers(this IServiceCollection services, params Assembly[] assemblies)
-        {
-            // Existing code...
-
+            services.AddSingleton(configuration ?? new DeepDiveConfiguration());
+            services.AddTransient<AnalyzerManager>();
             return services;
         }
 
@@ -30,7 +23,7 @@ namespace ObjectInfo.DeepDive
             {
                 foreach (var analyzer in plugin.GetAnalyzers())
                 {
-                    services.AddSingleton(analyzer.GetType(), analyzer);
+                    services.AddSingleton(typeof(IAnalyzer), analyzer.GetType());
                 }
             }
 
