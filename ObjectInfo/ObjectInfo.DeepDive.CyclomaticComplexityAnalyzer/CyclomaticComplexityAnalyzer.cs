@@ -7,8 +7,12 @@ using ObjectInfo.Models.ObjectInfo;
 using ObjectInfo.Models.MethodInfo;
 using System.Reflection;
 using Serilog;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
-namespace ObjectInfo.DeepDive.Analyzers
+namespace ObjectInfo.DeepDive.CyclomaticComplexityAnalyzer
 {
     public class CyclomaticComplexityAnalyzer : IMethodAnalyzer
     {
@@ -19,22 +23,29 @@ namespace ObjectInfo.DeepDive.Analyzers
             _logger = logger;
         }
 
-        public string AnalyzerName => "Cyclomatic Complexity Analyzer";
+        public string Name => "Cyclomatic Complexity Analyzer";
 
-        public async Task<AnalysisResult> AnalyzeAsync(ObjInfo objInfo)
+        public async Task<AnalysisResult> AnalyzeAsync(AnalysisContext context)
         {
-            var methodResults = new List<MethodAnalysisResult>();
-
-            foreach (var methodInfo in objInfo.TypeInfo.MethodInfos)
+            _logger.Information("CyclomaticComplexityAnalyzer.AnalyzeAsync started");
+            if (context.Target is ObjInfo objInfo)
             {
-                var result = await AnalyzeMethodAsync(methodInfo);
-                methodResults.Add(result);
+                var methodResults = new List<MethodAnalysisResult>();
+                foreach (var methodInfo in objInfo.TypeInfo.MethodInfos)
+                {
+                    var result = await AnalyzeMethodAsync(methodInfo);
+                    methodResults.Add(result);
+                }
+                var summary = $"Analyzed {methodResults.Count} methods for cyclomatic complexity.";
+                var details = string.Join("\n", methodResults.Select(r => r.Details));
+                _logger.Information("CyclomaticComplexityAnalyzer.AnalyzeAsync completed");
+                return new AnalysisResult(Name, summary, details);
             }
-
-            var summary = $"Analyzed {methodResults.Count} methods for cyclomatic complexity.";
-            var details = string.Join("\n", methodResults.Select(r => r.Details));
-
-            return new AnalysisResult(AnalyzerName, summary, details);
+            else
+            {
+                _logger.Warning("CyclomaticComplexityAnalyzer.AnalyzeAsync received invalid context");
+                return new AnalysisResult(Name, "Invalid analysis target", "The provided context does not contain a valid ObjInfo instance.");
+            }
         }
 
         public async Task<MethodAnalysisResult> AnalyzeMethodAsync(IMethodInfo methodInfo)
@@ -48,7 +59,8 @@ namespace ObjectInfo.DeepDive.Analyzers
             var details = $"Method: {methodInfo.Name}\nComplexity: {complexity}\n" +
                           $"Interpretation: {InterpretComplexity(complexity)}";
 
-            return new MethodAnalysisResult(AnalyzerName, methodInfo.Name, summary, details, complexity);
+            _logger.Information($"Completed analysis for method: {methodInfo.Name}, Complexity: {complexity}");
+            return new MethodAnalysisResult(Name, methodInfo.Name, summary, details, complexity);
         }
 
         private string GetMethodBody(IMethodInfo methodInfo)
@@ -111,9 +123,9 @@ namespace ObjectInfo.DeepDive.Analyzers
         {
             return complexity switch
             {
-                <= 10 => "Simple, low-risk code",
-                <= 20 => "Moderately complex, moderate risk",
-                <= 50 => "Complex, high-risk code",
+                <= 5 => "Simple, low-risk code",
+                <= 10 => "Moderately complex, moderate risk",
+                <= 20 => "Complex, high-risk code",
                 _ => "Untestable code (very high risk)"
             };
         }

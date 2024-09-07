@@ -1,37 +1,32 @@
 using ObjectInfo.Models.ObjectInfo;
 using ObjectInfo.DeepDive.Analyzers;
 using ObjectInfo.DeepDive.Analysis;
+using Serilog;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace ObjectInfo.DeepDive
 {
-    /// <summary>
-    /// Provides advanced analysis capabilities for ObjectInfo instances.
-    /// </summary>
     public class DeepDiveAnalysis
     {
         private readonly ObjInfo _baseObjectInfo;
         private readonly AnalyzerManager _analyzerManager;
+        private readonly ILogger _logger;
 
-        /// <summary>
-        /// Initializes a new instance of the DeepDiveAnalysis class.
-        /// </summary>
-        /// <param name="baseObjectInfo">The ObjectInfo instance to analyze.</param>
-        /// <param name="analyzerManager">The AnalyzerManager to use for analysis.</param>
-        public DeepDiveAnalysis(ObjInfo baseObjectInfo, AnalyzerManager analyzerManager)
+        public DeepDiveAnalysis(ObjInfo baseObjectInfo, AnalyzerManager analyzerManager, ILogger logger)
         {
             _baseObjectInfo = baseObjectInfo;
             _analyzerManager = analyzerManager;
+            _logger = logger;
         }
 
-        /// <summary>
-        /// Runs all registered analyzers on the ObjectInfo instance.
-        /// </summary>
-        /// <returns>A collection of analysis results.</returns>
         public async Task<IEnumerable<AnalysisResult>> RunAllAnalyzersAsync()
         {
-            return await _analyzerManager.RunAnalyzersAsync(_baseObjectInfo);
+            _logger.Information("DeepDiveAnalysis.RunAllAnalyzersAsync started");
+            var results = await _analyzerManager.RunAnalyzersAsync(_baseObjectInfo);
+            _logger.Information($"DeepDiveAnalysis.RunAllAnalyzersAsync completed. Results count: {results.Count()}");
+            return results;
         }
-
-        // Additional analysis methods can be added here
     }
 }
