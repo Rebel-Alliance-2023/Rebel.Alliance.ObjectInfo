@@ -118,7 +118,6 @@ namespace ObjectInfo.Deepdive.SolidAnalyzer
             if (typeInfo.BaseType != null)
             {
                 var baseType = types.Where(a => a.Name.Contains(typeInfo.BaseType)).FirstOrDefault();
-                //assembly.GetType(typeInfo.BaseType);
                 if (baseType != null)
                     foreach (System.Reflection.MethodInfo method in methods)
                     {
@@ -129,21 +128,6 @@ namespace ObjectInfo.Deepdive.SolidAnalyzer
                         }
                     }
             }
-
-            //if (typeInfo.BaseType != null)
-            //{
-            //    foreach (System.Reflection.MethodInfo method in methods)
-            //    {
-            //        //if (method.Name.StartsWith("override", StringComparison.OrdinalIgnoreCase))
-            //        // how can we tell if a method is an override?
-
-            //        var baseMethod = typeInfo.BaseType.MethodInfos.FirstOrDefault(m => m.Name == method.Name);
-            //        if (method.)
-            //        {
-            //            analysis.Violations.Add($"Method {method.Name} may violate LSP. Manual review recommended.");
-            //        }
-            //    }
-            //}
 
             return analysis;
         }
