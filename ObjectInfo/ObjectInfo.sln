@@ -9,19 +9,19 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ObjectInfo.Unit.Tests", "Ob
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ObjectInfo.Deepdive", "ObjectInfo.Deepdive\ObjectInfo.Deepdive.csproj", "{7AAE1D6C-8575-4AFF-85C1-E672F4082B80}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ObjectInfo.DeepDive.Tests", "ObjectInfo.DeepDive.Tests\ObjectInfo.DeepDive.Tests.csproj", "{40518B91-0DA9-4464-89CF-D0D940BFF525}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ObjectInfo.DeepDive.CyclomaticComplexityAnalyzer.Tests", "ObjectInfo.DeepDive.Tests\ObjectInfo.DeepDive.CyclomaticComplexityAnalyzer.Tests.csproj", "{40518B91-0DA9-4464-89CF-D0D940BFF525}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ObjInfo", "ObjInfo", "{B5C6E4FF-BAC9-474A-87CF-23623A2B9C13}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ObjInfo.Deepdive", "ObjInfo.Deepdive", "{D597834E-5FDB-4AB6-96FC-C92F38141E77}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ObjectInfo.DeepDive.CyclomaticComplexityAnalyzer", "ObjectInfo.DeepDive.CyclomaticComplexityAnalyzer\ObjectInfo.DeepDive.CyclomaticComplexityAnalyzer.csproj", "{7773225F-D78C-4721-A606-19F7C2F33FC0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ObjectInfo.DeepDive.CyclomaticComplexityAnalyzer", "ObjectInfo.DeepDive.CyclomaticComplexityAnalyzer\ObjectInfo.DeepDive.CyclomaticComplexityAnalyzer.csproj", "{7773225F-D78C-4721-A606-19F7C2F33FC0}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ObjectInfo.DeepDive.Plugins", "ObjectInfo.DeepDive.Plugins", "{0935EFC3-922F-4EDB-A0A8-E2D724F34D9D}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ObjInfo.DeepDive.Plugins", "ObjInfo.DeepDive.Plugins", "{0935EFC3-922F-4EDB-A0A8-E2D724F34D9D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ObjectInfo.DeepDive.LinqComplexityAnalyzer", "LinqComplexityAnalyzer\ObjectInfo.DeepDive.LinqComplexityAnalyzer.csproj", "{A042FA13-B5DB-478D-8D8C-38A22515D822}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ObjectInfo.DeepDive.LinqComplexityAnalyzer", "LinqComplexityAnalyzer\ObjectInfo.DeepDive.LinqComplexityAnalyzer.csproj", "{A042FA13-B5DB-478D-8D8C-38A22515D822}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ObjectInfo.DeepDive.LinqComplexityAnalyzer.Tests", "ObjectInfo.DeepDive.LinqComplexityAnalyzer.Tests\ObjectInfo.DeepDive.LinqComplexityAnalyzer.Tests.csproj", "{444F081C-9692-4BC8-881B-92424458D078}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ObjectInfo.DeepDive.LinqComplexityAnalyzer.Tests", "ObjectInfo.DeepDive.LinqComplexityAnalyzer.Tests\ObjectInfo.DeepDive.LinqComplexityAnalyzer.Tests.csproj", "{444F081C-9692-4BC8-881B-92424458D078}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "LinqComplexityAnalyzer", "LinqComplexityAnalyzer", "{9D8BE592-E849-491C-BAB1-2FB2E6F6C966}"
 EndProject
@@ -30,11 +30,13 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		Scratch.txt = Scratch.txt
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ObjectInfo.Deepdive.SolidAnalyzer", "ObjectInfo.Deepdive.SolidAnalyzer\ObjectInfo.Deepdive.SolidAnalyzer.csproj", "{86E9241C-D30D-4456-B44F-D155C5FA8A50}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ObjectInfo.Deepdive.SolidAnalyzer", "ObjectInfo.Deepdive.SolidAnalyzer\ObjectInfo.Deepdive.SolidAnalyzer.csproj", "{86E9241C-D30D-4456-B44F-D155C5FA8A50}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolidAnalyzer", "SolidAnalyzer", "{7C66203E-8B8A-48D8-996A-1BAAE6E97008}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ObjectInfo.Deepdive.SolidAnalyzer.Tests", "ObjectInfo.Deepdive.SolidAnalyzer.Tests\ObjectInfo.Deepdive.SolidAnalyzer.Tests.csproj", "{4A7D878C-0C03-414B-9AD4-AA88313D4588}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ObjectInfo.Deepdive.SolidAnalyzer.Tests", "ObjectInfo.Deepdive.SolidAnalyzer.Tests\ObjectInfo.Deepdive.SolidAnalyzer.Tests.csproj", "{4A7D878C-0C03-414B-9AD4-AA88313D4588}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "CyclomaticComplexityAnalyzer", "CyclomaticComplexityAnalyzer", "{8BB2D048-78D9-49CB-BE1C-6249E27BE01E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -86,14 +88,15 @@ Global
 		{33FCD6F6-ABEF-4F74-A7CD-D4D45E28F7DF} = {B5C6E4FF-BAC9-474A-87CF-23623A2B9C13}
 		{66FDEEE5-B156-4A13-8C40-6D36887B636F} = {B5C6E4FF-BAC9-474A-87CF-23623A2B9C13}
 		{7AAE1D6C-8575-4AFF-85C1-E672F4082B80} = {D597834E-5FDB-4AB6-96FC-C92F38141E77}
-		{40518B91-0DA9-4464-89CF-D0D940BFF525} = {D597834E-5FDB-4AB6-96FC-C92F38141E77}
-		{7773225F-D78C-4721-A606-19F7C2F33FC0} = {0935EFC3-922F-4EDB-A0A8-E2D724F34D9D}
+		{40518B91-0DA9-4464-89CF-D0D940BFF525} = {8BB2D048-78D9-49CB-BE1C-6249E27BE01E}
+		{7773225F-D78C-4721-A606-19F7C2F33FC0} = {8BB2D048-78D9-49CB-BE1C-6249E27BE01E}
 		{A042FA13-B5DB-478D-8D8C-38A22515D822} = {9D8BE592-E849-491C-BAB1-2FB2E6F6C966}
 		{444F081C-9692-4BC8-881B-92424458D078} = {9D8BE592-E849-491C-BAB1-2FB2E6F6C966}
 		{9D8BE592-E849-491C-BAB1-2FB2E6F6C966} = {0935EFC3-922F-4EDB-A0A8-E2D724F34D9D}
 		{86E9241C-D30D-4456-B44F-D155C5FA8A50} = {7C66203E-8B8A-48D8-996A-1BAAE6E97008}
 		{7C66203E-8B8A-48D8-996A-1BAAE6E97008} = {0935EFC3-922F-4EDB-A0A8-E2D724F34D9D}
 		{4A7D878C-0C03-414B-9AD4-AA88313D4588} = {7C66203E-8B8A-48D8-996A-1BAAE6E97008}
+		{8BB2D048-78D9-49CB-BE1C-6249E27BE01E} = {0935EFC3-922F-4EDB-A0A8-E2D724F34D9D}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {6AEDE20E-109D-4079-BEEF-1A79F73B7350}
