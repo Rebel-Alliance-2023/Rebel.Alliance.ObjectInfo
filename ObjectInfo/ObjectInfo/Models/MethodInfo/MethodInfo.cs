@@ -17,7 +17,12 @@ namespace ObjectInfo.Models.MethodInfo
         public string Name { get; set; }
 
         public string ReflectedType { get; set; }
+        public bool IsVirtual { get; set; }
         public List<ITypeInfo> CustomAttrs { get; set; }
+        public MethodInfo(System.Reflection.MethodInfo methodInfo)
+        {
+            IsVirtual = methodInfo.IsVirtual;
+        }
 
     }
 }

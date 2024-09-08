@@ -35,6 +35,7 @@ using ObjectInfo.Models.PropInfo;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Reflection;
 using System.Text;
 
@@ -63,6 +64,16 @@ namespace ObjectInfo.Models.TypeInfo
         public List<IPropInfo> PropInfos { get; set; }
         public List<IMethodInfo> MethodInfos { get; set; }
         public List<ITypeInfo> ImplementedInterfaces { get; set; }
+
+        public bool IsAbstract { get; set; }
+
+        public TypeInfo(Type type)
+        {
+            IsAbstract = type.IsAbstract;
+            MethodInfos = type.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static | BindingFlags.NonPublic)
+                              .Select(m => new MethodInfo.MethodInfo(m) as IMethodInfo)
+                              .ToList();
+        }
 
     }
 }

@@ -49,6 +49,7 @@ namespace ObjectInfo.Models.TypeInfo
         string Name { get; set; }
         string Namespace { get; set; }
         string UnderlyingSystemType { get; set; }
+        bool IsAbstract { get; set; }
         List<ITypeInfo> CustomAttrs { get; set; }
         List<IMethodInfo> MethodInfos { get; set; }
         List<IPropInfo> PropInfos { get; set; }

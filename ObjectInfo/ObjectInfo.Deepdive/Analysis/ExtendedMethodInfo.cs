@@ -50,6 +50,7 @@ namespace ObjectInfo.DeepDive.Analysis
             get => _baseMethodInfo.CustomAttrs;
             set => _baseMethodInfo.CustomAttrs = value;
         }
+        public bool IsVirtual { get;set; }
 
         public string GetMethodBody()
         {

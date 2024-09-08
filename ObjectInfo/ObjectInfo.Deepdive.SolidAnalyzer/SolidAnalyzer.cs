@@ -15,11 +15,11 @@ namespace ObjectInfo.Deepdive.SolidAnalyzer
     public class SolidAnalyzer : IAnalyzer
     {
         private readonly ILogger _logger;
-        private readonly SolidAnalyzerConfig _config;
+        private readonly SolidAnalyzerConfig? _config;
 
         public string Name => "SOLID Principles Analyzer";
 
-        public SolidAnalyzer(ILogger logger, SolidAnalyzerConfig config = null)
+        public SolidAnalyzer(ILogger logger, SolidAnalyzerConfig? config = null)
         {
             _logger = logger;
             _config = config ?? new SolidAnalyzerConfig();
@@ -58,7 +58,7 @@ namespace ObjectInfo.Deepdive.SolidAnalyzer
 
             result.Details = result.ToString();
 
-            return result;
+            return await Task.FromResult(result);
         }
 
         private SrpAnalysis AnalyzeSrp(ITypeInfo typeInfo)
@@ -83,10 +83,17 @@ namespace ObjectInfo.Deepdive.SolidAnalyzer
         {
             var analysis = new OcpAnalysis
             {
-                IsAbstract = typeInfo.Name.StartsWith("abstract", StringComparison.OrdinalIgnoreCase),
-                VirtualMethodCount = typeInfo.MethodInfos.Count(m => m.Name.StartsWith("virtual", StringComparison.OrdinalIgnoreCase)),
+                IsAbstract = typeInfo.IsAbstract,
+                VirtualMethodCount = typeInfo.MethodInfos.Count(m => m.IsVirtual),
                 Violations = new List<string>()
             };
+
+            _logger.Information($"Analyzing type {typeInfo.Name}: IsAbstract={analysis.IsAbstract}, VirtualMethodCount={analysis.VirtualMethodCount}");
+
+            foreach (var method in typeInfo.MethodInfos)
+            {
+                _logger.Information($"Method {method.Name} is virtual: {method.IsVirtual}");
+            }
 
             if (!analysis.IsAbstract && analysis.VirtualMethodCount == 0)
             {
@@ -98,6 +105,22 @@ namespace ObjectInfo.Deepdive.SolidAnalyzer
 
         private LspAnalysis AnalyzeLsp(ITypeInfo typeInfo)
         {
+            //get assembly given typeInfo.AssemblyQualifiedName and typeInfo.Name
+            //var assembly = System.Reflection.Assembly.Load(typeInfo.AssemblyQualifiedName);
+            //var assembly = System.Reflection.Assembly.GetExecutingAssembly();
+            //use reflection to the the assembly from typeInfo.Assembly
+            var assembly = System.Reflection.Assembly.Load(typeInfo.Assembly);
+
+            //find a type in assembly that has the name typeInfo.Name
+            //query the assembly for the type with the name typeInfo.Name
+            var types = assembly.GetTypes();
+            // use LINQ to find the type with the name typeInfo.Name
+
+            var type = types.Where(a => a.Name.Contains(typeInfo.Name)).FirstOrDefault();
+
+            //var type = assembly.GetType(typeInfo.Name);
+            var methods = type.GetMethods();
+
             var analysis = new LspAnalysis
             {
                 Violations = new List<string>()
@@ -105,14 +128,33 @@ namespace ObjectInfo.Deepdive.SolidAnalyzer
 
             if (typeInfo.BaseType != null)
             {
-                foreach (var method in typeInfo.MethodInfos)
-                {
-                    if (method.Name.StartsWith("override", StringComparison.OrdinalIgnoreCase))
+                var baseType = types.Where(a => a.Name.Contains(typeInfo.BaseType)).FirstOrDefault();
+                //assembly.GetType(typeInfo.BaseType);
+                if (baseType != null)
+                    foreach (System.Reflection.MethodInfo method in methods)
                     {
-                        analysis.Violations.Add($"Method {method.Name} may violate LSP. Manual review recommended.");
+                        var baseMethod = baseType?.GetMethod(method.Name);
+                        if (baseMethod != null && method.GetBaseDefinition() != baseMethod)
+                        {
+                            analysis.Violations.Add($"Method {method.Name} may violate LSP. Manual review recommended.");
+                        }
                     }
-                }
             }
+
+            //if (typeInfo.BaseType != null)
+            //{
+            //    foreach (System.Reflection.MethodInfo method in methods)
+            //    {
+            //        //if (method.Name.StartsWith("override", StringComparison.OrdinalIgnoreCase))
+            //        // how can we tell if a method is an override?
+
+            //        var baseMethod = typeInfo.BaseType.MethodInfos.FirstOrDefault(m => m.Name == method.Name);
+            //        if (method.)
+            //        {
+            //            analysis.Violations.Add($"Method {method.Name} may violate LSP. Manual review recommended.");
+            //        }
+            //    }
+            //}
 
             return analysis;
         }
@@ -121,16 +163,35 @@ namespace ObjectInfo.Deepdive.SolidAnalyzer
         {
             var analysis = new IspAnalysis
             {
-                InterfaceCount = typeInfo.ImplementedInterfaces.Count(),
+                InterfaceCount = typeInfo.ImplementedInterfaces?.Count() ?? 0,
                 Violations = new List<string>()
             };
 
-            foreach (var iface in typeInfo.ImplementedInterfaces)
+            if (typeInfo.ImplementedInterfaces != null)
             {
-                if (iface.MethodInfos.Count() > 5)
+                foreach (var iface in typeInfo.ImplementedInterfaces)
                 {
-                    analysis.Violations.Add($"Interface {iface.Name} has more than 5 methods, potentially violating ISP.");
+                    if (iface.MethodInfos != null)
+                    {
+                        _logger.Information($"Analyzing interface {iface.Name} with {iface.MethodInfos.Count()} methods.");
+                        var implementedMethods = typeInfo.MethodInfos.Select(m => m.Name).ToHashSet();
+                        foreach (var method in iface.MethodInfos)
+                        {
+                            if (!implementedMethods.Contains(method.Name))
+                            {
+                                analysis.Violations.Add($"Class does not fully implement interface {iface.Name}. Missing method: {method.Name}");
+                            }
+                        }
+                    }
+                    else
+                    {
+                        _logger.Warning($"Interface {iface.Name} has null MethodInfos.");
+                    }
                 }
+            }
+            else
+            {
+                _logger.Warning("ImplementedInterfaces is null.");
             }
 
             return analysis;
@@ -148,14 +209,34 @@ namespace ObjectInfo.Deepdive.SolidAnalyzer
             foreach (var prop in typeInfo.PropInfos)
             {
                 analysis.DependencyCount++;
-                if (prop.PropertyType.StartsWith("interface", StringComparison.OrdinalIgnoreCase) || 
+                if (prop.PropertyType.StartsWith("interface", StringComparison.OrdinalIgnoreCase) ||
                     prop.PropertyType.StartsWith("abstract", StringComparison.OrdinalIgnoreCase))
                 {
                     analysis.AbstractDependencyCount++;
                 }
                 else
                 {
-                    analysis.Violations.Add($"Property {prop.Name} is a concrete type, potentially violating DIP.");
+                    analysis.Violations.Add($"Property {prop.Name} is a concrete type ({prop.PropertyType}), potentially violating DIP.");
+                }
+            }
+
+            // Check constructor parameters
+            var constructors = typeInfo.MethodInfos.Where(m => m.Name == typeInfo.Name);
+            foreach (var ctor in constructors)
+            {
+                // Assuming parameters are stored in a property of IMethodInfo, adjust as needed
+                foreach (var param in ctor.CustomAttrs.Select(attr => attr.Name) ?? Enumerable.Empty<string>())
+                {
+                    analysis.DependencyCount++;
+                    if (!param.StartsWith("interface", StringComparison.OrdinalIgnoreCase) &&
+                        !param.StartsWith("abstract", StringComparison.OrdinalIgnoreCase))
+                    {
+                        analysis.Violations.Add($"Constructor parameter of type {param} is a concrete type, potentially violating DIP.");
+                    }
+                    else
+                    {
+                        analysis.AbstractDependencyCount++;
+                    }
                 }
             }
 
@@ -172,7 +253,7 @@ namespace ObjectInfo.Deepdive.SolidAnalyzer
         public DipAnalysis DependencyInversionAnalysis { get; set; }
 
         public SolidAnalysisResult(string analyzerName, string typeName, string summary, string details)
-            : base(analyzerName, typeName, summary, details, 0, 0) 
+            : base(analyzerName, typeName, summary, details, 0, 0)
         {
             SingleResponsibilityAnalysis = new SrpAnalysis();
             OpenClosedAnalysis = new OcpAnalysis();
@@ -197,7 +278,7 @@ namespace ObjectInfo.Deepdive.SolidAnalyzer
         public int PublicMemberCount { get; set; }
         public List<string> Violations { get; set; } = new List<string>();
 
-        public override string ToString() => 
+        public override string ToString() =>
             $"Public Members: {PublicMemberCount}\nViolations: {string.Join(", ", Violations)}";
     }
 
@@ -207,7 +288,7 @@ namespace ObjectInfo.Deepdive.SolidAnalyzer
         public int VirtualMethodCount { get; set; }
         public List<string> Violations { get; set; } = new List<string>();
 
-        public override string ToString() => 
+        public override string ToString() =>
             $"Is Abstract: {IsAbstract}\nVirtual Methods: {VirtualMethodCount}\nViolations: {string.Join(", ", Violations)}";
     }
 
@@ -215,7 +296,7 @@ namespace ObjectInfo.Deepdive.SolidAnalyzer
     {
         public List<string> Violations { get; set; } = new List<string>();
 
-        public override string ToString() => 
+        public override string ToString() =>
             $"Violations: {string.Join(", ", Violations)}";
     }
 
@@ -224,7 +305,7 @@ namespace ObjectInfo.Deepdive.SolidAnalyzer
         public int InterfaceCount { get; set; }
         public List<string> Violations { get; set; } = new List<string>();
 
-        public override string ToString() => 
+        public override string ToString() =>
             $"Interfaces Implemented: {InterfaceCount}\nViolations: {string.Join(", ", Violations)}";
     }
 
@@ -234,7 +315,7 @@ namespace ObjectInfo.Deepdive.SolidAnalyzer
         public int AbstractDependencyCount { get; set; }
         public List<string> Violations { get; set; } = new List<string>();
 
-        public override string ToString() => 
+        public override string ToString() =>
             $"Total Dependencies: {DependencyCount}\nAbstract Dependencies: {AbstractDependencyCount}\nViolations: {string.Join(", ", Violations)}";
     }
 

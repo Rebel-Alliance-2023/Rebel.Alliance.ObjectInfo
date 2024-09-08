@@ -113,16 +113,17 @@ namespace ObjectInfo.Brokers.ObjectInfo
         private ITypeInfo GetIntfcTypeInfo(Type intfcType)
         {
             System.Reflection.TypeInfo typeInfo = intfcType.GetTypeInfo();
-            Models.TypeInfo.TypeInfo modeltypeInfo = new Models.TypeInfo.TypeInfo();
+            Models.TypeInfo.TypeInfo modeltypeInfo = new Models.TypeInfo.TypeInfo(typeInfo); // Pass the required parameter
             modeltypeInfo.Namespace = typeInfo.Namespace;
             modeltypeInfo.Name = typeInfo.Name;
             modeltypeInfo.Assembly = typeInfo.Assembly != null ? typeInfo.Assembly.FullName : null;
             modeltypeInfo.AssemblyQualifiedName = typeInfo.AssemblyQualifiedName;
             modeltypeInfo.FullName = typeInfo.FullName;
-            modeltypeInfo.BaseType = typeInfo.BaseType!= null ? typeInfo.BaseType.Name : null ;
+            modeltypeInfo.BaseType = typeInfo.BaseType != null ? typeInfo.BaseType.Name : null;
             modeltypeInfo.Module = typeInfo.Module != null ? typeInfo.Module.Name : null;
             modeltypeInfo.GUID = typeInfo.GUID;
             modeltypeInfo.UnderlyingSystemType = typeInfo.UnderlyingSystemType != null ? typeInfo.UnderlyingSystemType.Name : null;
+            modeltypeInfo.IsAbstract = intfcType.IsAbstract;
 
             return modeltypeInfo;
         }
@@ -130,7 +131,7 @@ namespace ObjectInfo.Brokers.ObjectInfo
         private ITypeInfo GetTypeInfo(object obj)
         {
             System.Reflection.TypeInfo typeInfo = obj.GetType().GetTypeInfo();
-            Models.TypeInfo.TypeInfo modeltypeInfo = new Models.TypeInfo.TypeInfo();
+            Models.TypeInfo.TypeInfo modeltypeInfo = new Models.TypeInfo.TypeInfo(typeInfo); // Pass the required parameter
             modeltypeInfo.PropInfos = new List<IPropInfo>();
             modeltypeInfo.MethodInfos = new List<IMethodInfo>();
             modeltypeInfo.ImplementedInterfaces = new List<ITypeInfo>();
@@ -144,6 +145,7 @@ namespace ObjectInfo.Brokers.ObjectInfo
             modeltypeInfo.Module = typeInfo.Module.Name;
             modeltypeInfo.GUID = typeInfo.GUID;
             modeltypeInfo.UnderlyingSystemType = typeInfo.UnderlyingSystemType != null ? typeInfo.UnderlyingSystemType.Name : null;
+            modeltypeInfo.IsAbstract = obj.GetType().IsAbstract;
 
             return modeltypeInfo;
         }
@@ -176,11 +178,15 @@ namespace ObjectInfo.Brokers.ObjectInfo
 
         public IMethodInfo GetMethodInfo(System.Reflection.MethodInfo _methodInfo)
         {
-            Models.MethodInfo.MethodInfo methodInfo = new Models.MethodInfo.MethodInfo();
-            methodInfo.Name = _methodInfo.Name;
-            methodInfo.ReflectedType = _methodInfo.ReflectedType != null ? _methodInfo.ReflectedType.Name : null;
-            methodInfo.DeclaringType = _methodInfo.DeclaringType != null ? _methodInfo.DeclaringType.Name : null;
-            methodInfo.CustomAttrs = new List<ITypeInfo>();
+            Models.MethodInfo.MethodInfo methodInfo = new Models.MethodInfo.MethodInfo(_methodInfo)
+            {
+                Name = _methodInfo.Name,
+                ReflectedType = _methodInfo.ReflectedType?.Name,
+                DeclaringType = _methodInfo.DeclaringType?.Name,
+                CustomAttrs = new List<ITypeInfo>(),
+                IsVirtual = _methodInfo.IsVirtual
+            };
+
             MemberInfo[] myMembers = _methodInfo.DeclaringType.GetMembers();
 
             for (int i = 0; i < myMembers.Length; i++)
@@ -207,6 +213,8 @@ namespace ObjectInfo.Brokers.ObjectInfo
             }
             return methodInfo;
         }
+
+
     }
 
 }
