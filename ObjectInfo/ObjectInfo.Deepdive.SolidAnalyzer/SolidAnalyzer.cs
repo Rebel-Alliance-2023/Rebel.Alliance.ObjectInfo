@@ -105,20 +105,9 @@ namespace ObjectInfo.Deepdive.SolidAnalyzer
 
         private LspAnalysis AnalyzeLsp(ITypeInfo typeInfo)
         {
-            //get assembly given typeInfo.AssemblyQualifiedName and typeInfo.Name
-            //var assembly = System.Reflection.Assembly.Load(typeInfo.AssemblyQualifiedName);
-            //var assembly = System.Reflection.Assembly.GetExecutingAssembly();
-            //use reflection to the the assembly from typeInfo.Assembly
             var assembly = System.Reflection.Assembly.Load(typeInfo.Assembly);
-
-            //find a type in assembly that has the name typeInfo.Name
-            //query the assembly for the type with the name typeInfo.Name
             var types = assembly.GetTypes();
-            // use LINQ to find the type with the name typeInfo.Name
-
             var type = types.Where(a => a.Name.Contains(typeInfo.Name)).FirstOrDefault();
-
-            //var type = assembly.GetType(typeInfo.Name);
             var methods = type.GetMethods();
 
             var analysis = new LspAnalysis
@@ -206,11 +195,21 @@ namespace ObjectInfo.Deepdive.SolidAnalyzer
                 Violations = new List<string>()
             };
 
+            var assembly = System.Reflection.Assembly.Load(typeInfo.Assembly);
+            var types = assembly.GetTypes();
+            var type = types.Where(a => a.Name.Contains(typeInfo.Name)).FirstOrDefault();
+            //var methods = type.GetMethods();
+
+            //Given a type, how to you get its contructors?
+            var constructors = type.GetConstructors();
+
+
+
+            // Analyze properties
             foreach (var prop in typeInfo.PropInfos)
             {
                 analysis.DependencyCount++;
-                if (prop.PropertyType.StartsWith("interface", StringComparison.OrdinalIgnoreCase) ||
-                    prop.PropertyType.StartsWith("abstract", StringComparison.OrdinalIgnoreCase))
+                if (IsAbstractType(prop.PropertyType))
                 {
                     analysis.AbstractDependencyCount++;
                 }
@@ -220,28 +219,37 @@ namespace ObjectInfo.Deepdive.SolidAnalyzer
                 }
             }
 
-            // Check constructor parameters
-            var constructors = typeInfo.MethodInfos.Where(m => m.Name == typeInfo.Name);
+            // Analyze constructors
+            //var constructors = typeInfo.MethodInfos.Where(m => m.Name == typeInfo.Name);
+            //var constructors = methods.Where(m => m.Name == typeInfo.Name);
+
             foreach (var ctor in constructors)
             {
-                // Assuming parameters are stored in a property of IMethodInfo, adjust as needed
-                foreach (var param in ctor.CustomAttrs.Select(attr => attr.Name) ?? Enumerable.Empty<string>())
+                foreach (var param in ctor.GetParameters())
                 {
                     analysis.DependencyCount++;
-                    if (!param.StartsWith("interface", StringComparison.OrdinalIgnoreCase) &&
-                        !param.StartsWith("abstract", StringComparison.OrdinalIgnoreCase))
+                    if (param.ParameterType.IsInterface)
                     {
-                        analysis.Violations.Add($"Constructor parameter of type {param} is a concrete type, potentially violating DIP.");
+                        analysis.AbstractDependencyCount++;
                     }
                     else
                     {
-                        analysis.AbstractDependencyCount++;
+                        analysis.Violations.Add($"Constructor parameter of type {param} is a concrete type, potentially violating DIP.");
                     }
                 }
             }
 
             return analysis;
         }
+
+        private bool IsAbstractType(string typeName)
+        {
+            return typeName.StartsWith("interface", StringComparison.OrdinalIgnoreCase) ||
+                   typeName.StartsWith("abstract", StringComparison.OrdinalIgnoreCase) ||
+                   typeName.EndsWith("base", StringComparison.OrdinalIgnoreCase);
+        }
+
+
     }
 
     public class SolidAnalysisResult : TypeAnalysisResult
