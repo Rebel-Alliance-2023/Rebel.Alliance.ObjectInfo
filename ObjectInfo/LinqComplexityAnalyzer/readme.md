@@ -1,3 +1,4 @@
+[nuget package](https://www.nuget.org/packages/Rebel.Alliance.ObjectInfo.DeepDive.LinqComplexityAnalyzer)
 # LinqComplexityAnalyzer
 
 The LinqComplexityAnalyzer is a plugin for ObjectInfo.Deepdive that analyzes the complexity of LINQ queries in .NET methods.
