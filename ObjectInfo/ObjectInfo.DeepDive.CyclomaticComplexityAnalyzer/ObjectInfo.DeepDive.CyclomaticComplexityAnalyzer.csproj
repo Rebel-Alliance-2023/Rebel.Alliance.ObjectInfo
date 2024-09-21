@@ -1,17 +1,64 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-  </PropertyGroup>
+	<PropertyGroup>
+		<!-- Target framework -->
+		<TargetFramework>net8.0</TargetFramework>
 
+		<!-- Enable implicit usings and nullable reference types -->
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+
+		<!-- Language version -->
+		<LangVersion>latest</LangVersion>
+
+		<!-- NuGet Package Metadata -->
+		<Title>ObjectInfo.DeepDive.CyclomaticComplexityAnalyzer</Title>
+		<PackageId>Rebel.Alliance.ObjectInfo.DeepDive.CyclomaticComplexityAnalyzer</PackageId>
+		<Version>1.0.1</Version>
+		<Authors>The Rebel Alliance</Authors>
+		<Description>
+			ObjectInfo.DeepDive.CyclomaticComplexityAnalyzer is a plugin for ObjectInfo.DeepDive that calculates the cyclomatic complexity of methods within .NET projects. Leveraging Roslyn, it provides deep insights into code complexity, aiding developers in maintaining and improving code quality.
+		</Description>
+		<Copyright>Copyright (c) The Rebel Alliance</Copyright>
+		<PackageProjectUrl>https://github.com/Rebel-Alliance-2023/Rebel.Alliance.ObjectInfo/tree/main/ObjectInfo/ObjectInfo.DeepDive.CyclomaticComplexityAnalyzer</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/Rebel-Alliance-2023/Rebel.Alliance.ObjectInfo/tree/main/ObjectInfo/ObjectInfo.DeepDive.CyclomaticComplexityAnalyzer</RepositoryUrl>
+		<PackageTags>.NET;Reflection;CodeAnalysis;Roslyn;CyclomaticComplexity</PackageTags>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+
+		<!-- Generate XML documentation -->
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+
+		<!-- Automatically include XML documentation in the NuGet package -->
+		<IncludeXmlDocumentation>true</IncludeXmlDocumentation>
+
+		<!-- Enable package creation on build -->
+		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+
+		<!-- (Optional) Specify a package icon -->
+		<!-- <PackageIcon>Rebel.Alliance.Icon.02.png</PackageIcon> -->
+	</PropertyGroup>
+
+	<!-- Project References -->
 	<ItemGroup>
+		<ProjectReference Include="..\ObjectInfo.DeepDive\ObjectInfo.DeepDive.csproj" />
+	</ItemGroup>
+
+	<!-- Package Dependencies -->
+	<ItemGroup>
+		<!-- Serilog for logging -->
 		<PackageReference Include="Serilog" Version="4.0.1" />
-	</ItemGroup>	
-	
+
+		<!-- Additional dependencies can be added here -->
+	</ItemGroup>
+
+	<!-- (Optional) Include a package icon -->
+	<!--
   <ItemGroup>
-    <ProjectReference Include="..\ObjectInfo.Deepdive\ObjectInfo.Deepdive.csproj" />
+    <None Include="Rebel.Alliance.Icon.02.png">
+      <Pack>true</Pack>
+      <PackagePath>icon</PackagePath>
+    </None>
   </ItemGroup>
+  -->
 
 </Project>

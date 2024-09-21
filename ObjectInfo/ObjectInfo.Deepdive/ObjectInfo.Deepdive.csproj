@@ -6,6 +6,8 @@
 		<Nullable>enable</Nullable>
 		<LangVersion>latest</LangVersion>
 		<Title>ObjectInfo.DeepDive</Title>
+		<PackageId>Rebel.Alliance.ObjectInfo.DeepDive</PackageId>
+		<Version>1.0.1</Version>
 		<Authors>The Rebel Alliance</Authors>
 		<Description>
 			ObjectInfo.DeepDive is an advanced code analysis extension for ObjectInfo, leveraging .NET 8 and Roslyn
@@ -13,8 +15,8 @@
 			including method body inspection, cyclomatic complexity calculation, and a flexible plugin system for custom analyzers.
 		</Description>
 		<Copyright>Copyright (c) The Rebel Alliance</Copyright>
-		<PackageProjectUrl>https://github.com/Rebel-Alliance-2023/ObjectInfo.DeepDive</PackageProjectUrl>
-		<RepositoryUrl>https://github.com/Rebel-Alliance-2023/ObjectInfo.DeepDive</RepositoryUrl>
+		<PackageProjectUrl>https://github.com/Rebel-Alliance-2023/Rebel.Alliance.ObjectInfo/tree/main/ObjectInfo/ObjectInfo.Deepdive</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/Rebel-Alliance-2023/Rebel.Alliance.ObjectInfo/tree/main/ObjectInfo/ObjectInfo.Deepdive</RepositoryUrl>
 		<PackageTags>.NET;Reflection;CodeAnalysis;Roslyn</PackageTags>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>

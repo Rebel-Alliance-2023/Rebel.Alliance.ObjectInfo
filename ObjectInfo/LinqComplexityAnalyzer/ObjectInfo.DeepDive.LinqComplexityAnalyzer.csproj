@@ -1,19 +1,68 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
+		<!-- Target framework -->
 		<TargetFramework>net8.0</TargetFramework>
+
+		<!-- Enable implicit usings and nullable reference types -->
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
+
+		<!-- Language version -->
+		<LangVersion>latest</LangVersion>
+
+		<!-- NuGet Package Metadata -->
+		<Title>ObjectInfo.DeepDive.LinqComplexityAnalyzer</Title>
+		<PackageId>Rebel.Alliance.ObjectInfo.DeepDive.LinqComplexityAnalyzer</PackageId>
+		<Version>1.0.0</Version>
+		<Authors>The Rebel Alliance</Authors>
+		<Description>
+			ObjectInfo.DeepDive.LinqComplexityAnalyzer is a plugin for ObjectInfo.DeepDive that analyzes the complexity of LINQ queries within .NET projects. Leveraging Roslyn, it provides deep insights into LINQ usage patterns and performance implications, helping developers optimize their code for better efficiency and maintainability.
+		</Description>
+		<Copyright>Copyright (c) The Rebel Alliance</Copyright>
+		<PackageProjectUrl>https://github.com/Rebel-Alliance-2023/Rebel.Alliance.ObjectInfo/tree/main/ObjectInfo/LinqComplexityAnalyzer</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/Rebel-Alliance-2023/Rebel.Alliance.ObjectInfo/tree/main/ObjectInfo/LinqComplexityAnalyzer</RepositoryUrl>
+		<PackageTags>.NET;Reflection;CodeAnalysis;Roslyn;LINQ;Complexity</PackageTags>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+
+		<!-- Generate XML documentation -->
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+
+		<!-- Automatically include XML documentation in the NuGet package -->
+		<IncludeXmlDocumentation>true</IncludeXmlDocumentation>
+
+		<!-- Enable package creation on build -->
+		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+
+		<!-- (Optional) Specify a package icon -->
+		<!-- <PackageIcon>Rebel.Alliance.Icon.03.png</PackageIcon> -->
 	</PropertyGroup>
 
+	<!-- Project References -->
 	<ItemGroup>
-		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.8.0" />
-		<PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.8.0" />
-		<PackageReference Include="Serilog" Version="4.0.1" />
+		<ProjectReference Include="..\ObjectInfo.DeepDive\ObjectInfo.DeepDive.csproj" />
 	</ItemGroup>
 
+	<!-- Package Dependencies -->
 	<ItemGroup>
-		<ProjectReference Include="..\ObjectInfo.Deepdive\ObjectInfo.Deepdive.csproj" />
+		<!-- Roslyn APIs for code analysis -->
+		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.8.0" />
+		<PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.8.0" />
+
+		<!-- Serilog for logging -->
+		<PackageReference Include="Serilog" Version="4.0.1" />
+
+		<!-- Additional dependencies can be added here -->
 	</ItemGroup>
+
+	<!-- (Optional) Include a package icon -->
+	<!--
+  <ItemGroup>
+    <None Include="Rebel.Alliance.Icon.03.png">
+      <Pack>true</Pack>
+      <PackagePath>icon</PackagePath>
+    </None>
+  </ItemGroup>
+  -->
 
 </Project>

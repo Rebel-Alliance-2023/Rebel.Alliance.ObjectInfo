@@ -1,20 +1,68 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
+		<!-- Target framework -->
 		<TargetFramework>net8.0</TargetFramework>
+
+		<!-- Enable implicit usings and nullable reference types -->
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
+
+		<!-- Language version -->
 		<LangVersion>latest</LangVersion>
+
+		<!-- NuGet Package Metadata -->
+		<Title>ObjectInfo.DeepDive.SolidAnalyzer</Title>
+		<PackageId>Rebel.Alliance.ObjectInfo.DeepDive.SolidAnalyzer</PackageId>
+		<Version>1.0.0</Version>
+		<Authors>The Rebel Alliance</Authors>
+		<Description>
+			ObjectInfo.DeepDive.SolidAnalyzer is a plugin for ObjectInfo.DeepDive that analyzes .NET projects for adherence to SOLID principles. Leveraging Roslyn, it provides deep insights into code structure and design, helping developers ensure their codebases maintain high standards of maintainability, scalability, and robustness.
+		</Description>
+		<Copyright>Copyright (c) The Rebel Alliance</Copyright>
+		<PackageProjectUrl>https://github.com/Rebel-Alliance-2023/Rebel.Alliance.ObjectInfo/tree/main/ObjectInfo/ObjectInfo.Deepdive.SolidAnalyzer</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/Rebel-Alliance-2023/Rebel.Alliance.ObjectInfo/tree/main/ObjectInfo/ObjectInfo.Deepdive.SolidAnalyzer</RepositoryUrl>
+		<PackageTags>.NET;Reflection;CodeAnalysis;Roslyn;SOLID;DesignPrinciples</PackageTags>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+
+		<!-- Generate XML documentation -->
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+
+		<!-- Automatically include XML documentation in the NuGet package -->
+		<IncludeXmlDocumentation>true</IncludeXmlDocumentation>
+
+		<!-- Enable package creation on build -->
+		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+
+		<!-- (Optional) Specify a package icon -->
+		<!-- <PackageIcon>Rebel.Alliance.Icon.04.png</PackageIcon> -->
 	</PropertyGroup>
 
+	<!-- Project References -->
 	<ItemGroup>
-		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.8.0" />
-		<PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.8.0" />
-		<PackageReference Include="Serilog" Version="4.0.1" />
+		<ProjectReference Include="..\ObjectInfo.DeepDive\ObjectInfo.DeepDive.csproj" />
 	</ItemGroup>
 
+	<!-- Package Dependencies -->
 	<ItemGroup>
-		<ProjectReference Include="..\ObjectInfo.Deepdive\ObjectInfo.Deepdive.csproj" />
+		<!-- Roslyn APIs for code analysis -->
+		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.8.0" />
+		<PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.8.0" />
+
+		<!-- Serilog for logging -->
+		<PackageReference Include="Serilog" Version="4.0.1" />
+
+		<!-- Additional dependencies can be added here -->
 	</ItemGroup>
+
+	<!-- (Optional) Include a package icon -->
+	<!--
+  <ItemGroup>
+    <None Include="Rebel.Alliance.Icon.04.png">
+      <Pack>true</Pack>
+      <PackagePath>icon</PackagePath>
+    </None>
+  </ItemGroup>
+  -->
 
 </Project>
