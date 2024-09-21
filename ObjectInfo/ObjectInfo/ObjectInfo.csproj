@@ -1,8 +1,9 @@
-<Project Sdk="Microsoft.NET.Sdk">
-
+﻿<Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
 		<TargetFrameworks>netstandard2.0;netstandard2.1;net8.0</TargetFrameworks>
 		<Title>Rebel.Alliance.ObjectInfo</Title>
+		<PackageId>Rebel.Alliance.ObjectInfo</PackageId>
+		<Version>1.0.1</Version>
 		<GeneratePackageOnBuild>False</GeneratePackageOnBuild>
 		<Copyright>Copyright (c) The Rebel Alliance</Copyright>
 		<Description>
@@ -15,11 +16,21 @@
 			ObjectInfo also contains a configuration object. We will use this in the future to fine-tune the ObjectInfo broker to provide "slices" of the meta-data when performance is an issue.
 		</Description>
 		<PackageProjectUrl>https://github.com/Rebel-Alliance-2023/Rebel.Alliance.ObjectInfo</PackageProjectUrl>
-		<PackageIcon>Rebel.Alliance.Icon.01.jpg</PackageIcon>
+
 		<RepositoryUrl>https://github.com/Rebel-Alliance-2023/Rebel.Alliance.ObjectInfo</RepositoryUrl>
 		<PackageTags>.NET;Reflection;DotNet</PackageTags>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
-		<PackageReadmeFile>README.md</PackageReadmeFile>
+		
 	</PropertyGroup>
 
+	<ItemGroup>
+	  <None Update="icon\Rebel.Alliance.Icon.01.png">
+	    <Pack>true</Pack>
+	    <PackagePath>icon</PackagePath>
+	  </None>
+		<None Update="README.md">
+			<Pack>true</Pack>
+			<PackageReadmeFile>README.md</PackageReadmeFile>
+		</None>
+	</ItemGroup>
 </Project>
