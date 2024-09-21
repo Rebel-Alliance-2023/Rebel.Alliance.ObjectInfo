@@ -1,3 +1,4 @@
+[nuget package](https://www.nuget.org/packages/Rebel.Alliance.ObjectInfo.DeepDive.SolidAnalyzer)
 # Solid Analyzer
 
 ## Introduction
