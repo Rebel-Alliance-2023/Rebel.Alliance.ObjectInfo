@@ -1,3 +1,4 @@
+[nuget package](https://www.nuget.org/packages/Rebel.Alliance.ObjectInfo.DeepDive.CyclomaticComplexityAnalyzer)
 # CyclomaticComplexityAnalyzer
 
 The CyclomaticComplexityAnalyzer is a plugin for ObjectInfo.Deepdive that calculates the cyclomatic complexity of methods in a .NET application.
