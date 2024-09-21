@@ -1,3 +1,4 @@
+[nuget package](https://www.nuget.org/packages/Rebel.Alliance.ObjectInfo.DeepDive)
 # ObjectInfo.Deepdive
 
 ObjectInfo.Deepdive is an extension library for ObjectInfo, designed to provide advanced code analysis capabilities. It leverages .NET 8+ features and the Roslyn compiler platform to offer deep insights into .NET objects and codebases.
