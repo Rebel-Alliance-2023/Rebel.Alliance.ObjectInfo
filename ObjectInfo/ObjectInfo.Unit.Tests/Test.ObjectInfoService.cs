@@ -69,5 +69,75 @@ namespace ObjectInfo.Unit.Tests
                 return true;
             }
         }
+
+
+        //_______________________________
+        //Test Classes
+
+
+        // Test class with constructor
+        public class TestClassWithConstructor
+        {
+            public string Name { get; }
+
+            public TestClassWithConstructor(string name)
+            {
+                Name = name;
+            }
+        }
+
+        // Test class with annotated constructor
+        [IsCompliant(LevelOfCompliance = 10)]
+        public class TestClassWithAnnotatedConstructor
+        {
+            public string Name { get; }
+
+            [IsCompliant(LevelOfCompliance = 10)]
+            public TestClassWithAnnotatedConstructor(string name)
+            {
+                Name = name;
+            }
+        }
+        public class TestClassWithFields
+        {
+            public const string ConstField = "Const Value";
+            public readonly string ReadOnlyField = "ReadOnly Value";
+
+            [IsCompliant(LevelOfCompliance = 10)]
+            public string AnnotatedField = "Annotated Value";
+        }
+
+        public class TestGenericClass<T>
+        {
+            public T Value { get; set; }
+        }
+
+        public interface ITestConstraint { }
+        public class TestConstraintImplementation : ITestConstraint { }
+
+        public class TestConstrainedGenericClass<T> where T : ITestConstraint, new()
+        {
+            public T Value { get; set; }
+        }
+
+        public delegate void CustomEventHandler(object sender, TestEventArgs e);
+        public class TestEventArgs : EventArgs { }
+
+        public class TestClassWithEvents
+        {
+            public event EventHandler SimpleEvent;
+            public event CustomEventHandler CustomEvent;
+
+            protected virtual void OnSimpleEvent()
+            {
+                SimpleEvent?.Invoke(this, EventArgs.Empty);
+            }
+
+            protected virtual void OnCustomEvent(TestEventArgs e)
+            {
+                CustomEvent?.Invoke(this, e);
+            }
+        }
+
     }
 }

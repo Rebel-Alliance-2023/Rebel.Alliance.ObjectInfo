@@ -185,7 +185,7 @@ namespace ObjectInfo.Deepdive.SolidAnalyzer
             //var methods = type.GetMethods();
 
             //Given a type, how to you get its contructors?
-            var constructors = type.GetConstructors();
+            System.Reflection.ConstructorInfo[] constructors = type.GetConstructors();
 
 
 
