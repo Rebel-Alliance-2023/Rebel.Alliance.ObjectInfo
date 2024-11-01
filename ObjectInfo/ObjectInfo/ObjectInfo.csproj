@@ -3,7 +3,7 @@
 		<TargetFrameworks>netstandard2.0;netstandard2.1;net8.0</TargetFrameworks>
 		<Title>Rebel.Alliance.ObjectInfo</Title>
 		<PackageId>Rebel.Alliance.ObjectInfo</PackageId>
-		<Version>1.0.1</Version>
+		<Version>1.0.2</Version>
 		<GeneratePackageOnBuild>False</GeneratePackageOnBuild>
 		<Copyright>Copyright (c) The Rebel Alliance</Copyright>
 		<Description>
