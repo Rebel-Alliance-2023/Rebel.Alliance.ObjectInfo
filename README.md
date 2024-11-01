@@ -5,64 +5,96 @@
 
 https://www.nuget.org/packages/ObjectInfo/1.0.0
 
-Presenting a minimalist library to easily query the DotNet Reflection API which multi-targets .NetStandard2.0 and .NetStandard2.1
+Presenting a comprehensive library to easily query the DotNet Reflection API which multi-targets .NetStandard2.0, .NetStandard2.1, and .NET 8.0
 
 The ObjectInfo Broker queries the Reflection API and converts the data from the various internal types to string properties, so that any client can read the data without needing references to hidden or protected libraries. Thus, this library is ideal for developers developing an "Object Inspector" in Blazor for instance.
 
-The top-level object is ObjectInfo, which contains the TypeInfo class, which in turn contains ImplementedInterfaces, PropInfo, MethodInfo. The Type, Method and Property models, each, contain a CustomAttributes collection. Thus, all relevant Reflection meta-data rolls up under ObjectInfo.
+The top-level object is ObjectInfo, which contains the TypeInfo class. TypeInfo now provides comprehensive metadata about:
+- Implemented Interfaces
+- Properties (PropInfo)
+- Methods (MethodInfo)
+- Constructors (ConstructorInfo)
+- Fields (FieldInfo)
+- Events (EventInfo)
+- Generic Type Information
+  - Generic Parameters
+  - Generic Constraints
+  - Generic Type Arguments
 
-ObjectInfo also contains a configuration object. We will use this in the future to fine-tune the ObjectInfo broker to provide "slices" of the meta-data when performance is an issue.
+All member types (Type, Method, Property, Constructor, Field, and Event) contain CustomAttributes collections, providing complete metadata coverage.
 
-Usage (from our unit tests): 
+ObjectInfo includes a configuration object that controls system type visibility and will be expanded to provide "slices" of the metadata when performance is an issue.
 
-            TestClass testClass = new TestClass() { Name = "Joe The Tester" };
-            IObjectInfoBroker objectInfoBroker = new ObjectInfoBroker();
+## Usage (from our unit tests)
 
-- Get ObjectInfo object
+### Basic Type Information
 
-            ObjInfo expectedObjectInfo = 
-            ObjectInfoService.RetrieveObjectInfo(objectInfoBroker, testClass);
+```csharp
+TestClass testClass = new TestClass() { Name = "Joe The Tester" };
+IObjectInfoBroker objectInfoBroker = new ObjectInfoBroker();
 
-- Navigate Implemented Interfaces
+// Get ObjectInfo object
+ObjInfo expectedObjectInfo = ObjectInfoService.RetrieveObjectInfo(objectInfoBroker, testClass);
+```
 
-            string? expectedImplementedInterfaceName =
-                expectedObjectInfo!.TypeInfo!.ImplementedInterfaces!.
-                FirstOrDefault(a => a.Name.Equals("ITestClass")).Name;
+### Member Navigation
 
-- Navigate MethodInfo
+```csharp
+// Navigate Implemented Interfaces
+string? implementedInterfaceName = expectedObjectInfo!.TypeInfo!.ImplementedInterfaces!
+    .FirstOrDefault(a => a.Name.Equals("ITestClass")).Name;
 
-            string? expectedMethodInfo =
-                expectedObjectInfo!.TypeInfo!.MethodInfos!.
-                FirstOrDefault(a => a.Name.Equals("EnsureCompliance")).Name;
+// Navigate Methods
+string? methodInfo = expectedObjectInfo!.TypeInfo!.MethodInfos!
+    .FirstOrDefault(a => a.Name.Equals("EnsureCompliance")).Name;
 
-- Navigate PropertyInfo
+// Navigate Properties
+string? propInfo = expectedObjectInfo!.TypeInfo!.PropInfos!
+    .FirstOrDefault(a => a.Name.Equals("Name")).Name;
 
-            string? expectedPropInfo =
-                expectedObjectInfo!.TypeInfo!.PropInfos!.
-                FirstOrDefault(a => a.Name.Equals("Name")).Name;
+// Navigate Constructors
+var constructor = expectedObjectInfo!.TypeInfo!.ConstructorInfos!.FirstOrDefault();
 
-- Navigate Type AttributeInfo
+// Navigate Fields
+var field = expectedObjectInfo!.TypeInfo!.FieldInfos!
+    .FirstOrDefault(f => f.Name.Equals("FieldName"));
 
-            string? expectedAttrInfo =
-                expectedObjectInfo!.TypeInfo!.CustomAttrs!.
-                FirstOrDefault(a => a.Name.Equals("IsCompliant")).Name;
+// Navigate Events
+var eventInfo = expectedObjectInfo!.TypeInfo!.EventInfos!
+    .FirstOrDefault(e => e.Name.Equals("EventName"));
+```
 
-- Navigate Method AttributeInfo
+### Generic Type Information
 
-            var expectedMethInfo =
-                expectedObjectInfo!.TypeInfo!.MethodInfos!.
-                FirstOrDefault(a => a.Name.Equals("EnsureCompliance"));
+```csharp
+// For generic types
+var genericType = expectedObjectInfo!.TypeInfo;
+if (genericType.IsGenericTypeDefinition)
+{
+    // Access generic parameters and constraints
+    var genericParam = genericType.GenericParameters.FirstOrDefault();
+    bool hasConstructorConstraint = genericParam.HasDefaultConstructorConstraint;
+}
+```
 
-            string? expectedAttrInfo =
-                expectedMethInfo.CustomAttrs!.
-                FirstOrDefault(a => a.Name.Equals("IsCompliant")).Name;
+### Attribute Navigation
 
-- Navigate Property AttributeInfo
+```csharp
+// Navigate Type Attributes
+string? typeAttrInfo = expectedObjectInfo!.TypeInfo!.CustomAttrs!
+    .FirstOrDefault(a => a.Name.Equals("IsCompliant")).Name;
 
-            var expectedPropInfo =
-                expectedObjectInfo!.TypeInfo!.PropInfos!.
-                FirstOrDefault(a => a.Name.Equals("Name"));
+// Navigate Method Attributes
+var methodInfo = expectedObjectInfo!.TypeInfo!.MethodInfos!
+    .FirstOrDefault(a => a.Name.Equals("EnsureCompliance"));
+string? methodAttrInfo = methodInfo.CustomAttrs!
+    .FirstOrDefault(a => a.Name.Equals("IsCompliant")).Name;
 
-            string? expectedAttrInfo =
-                expectedPropInfo.CustomAttrs!.
-                FirstOrDefault(a => a.Name.Equals("IsCompliant")).Name;
+// Navigate Property Attributes
+var propInfo = expectedObjectInfo!.TypeInfo!.PropInfos!
+    .FirstOrDefault(a => a.Name.Equals("Name"));
+string? propAttrInfo = propInfo.CustomAttrs!
+    .FirstOrDefault(a => a.Name.Equals("IsCompliant")).Name;
+```
+
+The library now provides complete reflection metadata access with a clean, consistent API surface, making it ideal for inspection tools, code analysis, and metadata-driven applications.
