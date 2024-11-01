@@ -30,7 +30,7 @@ namespace ObjectInfo.Brokers.ObjectInfo
     {
         public ObjInfo.IObjInfo GetObjectInfo(object obj, IConfigInfo configuration = null)
         {
-            Type type = obj.GetType();
+            Type type = obj is Type t ? t : obj.GetType();
             ObjInfo.ObjInfo objInfo = new ObjInfo.ObjInfo
             {
                 Configuration = configuration ?? new ConfigInfo(),
@@ -90,35 +90,68 @@ namespace ObjectInfo.Brokers.ObjectInfo
 
         private void GetTypeGenericInfo(ObjInfo.ObjInfo objInfo, Type type)
         {
-            var typeInfo = type.GetTypeInfo();
-
-            // Handle generic type definition
-            if (typeInfo.IsGenericTypeDefinition)
+            if (type.IsGenericTypeDefinition)
             {
-                var genericParams = typeInfo.GetGenericArguments();
+                objInfo.TypeInfo.IsGenericTypeDefinition = true;
+                var genericParams = type.GetGenericArguments();
                 foreach (var param in genericParams)
                 {
-                    var paramInfo = new GenericParameterInfo(param, t => GetTypeInfo(t.GetTypeInfo()));
+                    var paramInfo = new GenericParameterInfo(param, t => GetTypeInfo(t));
                     objInfo.TypeInfo.GenericParameters.Add(paramInfo);
                 }
             }
-
-            // Handle constructed generic type
-            if (type.IsGenericType && !type.IsGenericTypeDefinition)
+            else if (type.IsGenericType)
             {
+                objInfo.TypeInfo.IsConstructedGenericType = true;
                 var genericArgs = type.GetGenericArguments();
                 foreach (var arg in genericArgs)
                 {
                     if (!objInfo.Configuration.ShowSystemInfo && arg.Namespace?.StartsWith("System") == true)
                         continue;
 
-                    objInfo.TypeInfo.GenericTypeArguments.Add(GetTypeInfo(arg.GetTypeInfo()));
+                    objInfo.TypeInfo.GenericTypeArguments.Add(GetTypeInfo(arg));
                 }
 
                 var genericTypeDef = type.GetGenericTypeDefinition();
                 objInfo.TypeInfo.GenericTypeDefinition = genericTypeDef.Name;
             }
         }
+
+        private ITypeInfo GetTypeInfo(object obj)
+        {
+            if (obj is Type type)
+            {
+                return new Models.TypeInfo.TypeInfo(type);
+            }
+
+            System.Reflection.TypeInfo typeInfo = obj.GetType().GetTypeInfo();
+            //return new Models.TypeInfo.TypeInfo(typeInfo);
+
+            //--------------
+
+            //System.Reflection.TypeInfo typeInfo = obj.GetType().GetTypeInfo();
+            Models.TypeInfo.TypeInfo modeltypeInfo = new Models.TypeInfo.TypeInfo(typeInfo);
+            modeltypeInfo.PropInfos = new List<IPropInfo>();
+            modeltypeInfo.MethodInfos = new List<IMethodInfo>();
+            modeltypeInfo.ImplementedInterfaces = new List<ITypeInfo>();
+            modeltypeInfo.CustomAttrs = new List<ITypeInfo>();
+            modeltypeInfo.ConstructorInfos = new List<IConstructorInfo>();
+            modeltypeInfo.FieldInfos = new List<IFieldInfo>();
+            modeltypeInfo.Namespace = typeInfo.Namespace;
+            modeltypeInfo.Name = typeInfo.Name;
+            modeltypeInfo.Assembly = typeInfo.Assembly != null ? typeInfo.Assembly.FullName : null;
+            modeltypeInfo.AssemblyQualifiedName = typeInfo.AssemblyQualifiedName;
+            modeltypeInfo.FullName = typeInfo.FullName;
+            modeltypeInfo.BaseType = typeInfo.BaseType != null ? typeInfo.BaseType.Name : null;
+            modeltypeInfo.Module = typeInfo.Module.Name;
+            modeltypeInfo.GUID = typeInfo.GUID;
+            modeltypeInfo.UnderlyingSystemType = typeInfo.UnderlyingSystemType != null ? typeInfo.UnderlyingSystemType.Name : null;
+            modeltypeInfo.IsAbstract = obj.GetType().IsAbstract;
+
+            return modeltypeInfo;
+
+        }
+
 
         private void GetTypeFields(object obj, ObjInfo.ObjInfo objInfo, SystemFieldInfo[] fieldInfos)
         {
@@ -234,29 +267,29 @@ namespace ObjectInfo.Brokers.ObjectInfo
             return modeltypeInfo;
         }
 
-        private ITypeInfo GetTypeInfo(object obj)
-        {
-            System.Reflection.TypeInfo typeInfo = obj.GetType().GetTypeInfo();
-            Models.TypeInfo.TypeInfo modeltypeInfo = new Models.TypeInfo.TypeInfo(typeInfo);
-            modeltypeInfo.PropInfos = new List<IPropInfo>();
-            modeltypeInfo.MethodInfos = new List<IMethodInfo>();
-            modeltypeInfo.ImplementedInterfaces = new List<ITypeInfo>();
-            modeltypeInfo.CustomAttrs = new List<ITypeInfo>();
-            modeltypeInfo.ConstructorInfos = new List<IConstructorInfo>();
-            modeltypeInfo.FieldInfos = new List<IFieldInfo>();
-            modeltypeInfo.Namespace = typeInfo.Namespace;
-            modeltypeInfo.Name = typeInfo.Name;
-            modeltypeInfo.Assembly = typeInfo.Assembly != null ? typeInfo.Assembly.FullName : null;
-            modeltypeInfo.AssemblyQualifiedName = typeInfo.AssemblyQualifiedName;
-            modeltypeInfo.FullName = typeInfo.FullName;
-            modeltypeInfo.BaseType = typeInfo.BaseType != null ? typeInfo.BaseType.Name : null;
-            modeltypeInfo.Module = typeInfo.Module.Name;
-            modeltypeInfo.GUID = typeInfo.GUID;
-            modeltypeInfo.UnderlyingSystemType = typeInfo.UnderlyingSystemType != null ? typeInfo.UnderlyingSystemType.Name : null;
-            modeltypeInfo.IsAbstract = obj.GetType().IsAbstract;
+        //private ITypeInfo GetTypeInfo(object obj)
+        //{
+        //    System.Reflection.TypeInfo typeInfo = obj.GetType().GetTypeInfo();
+        //    Models.TypeInfo.TypeInfo modeltypeInfo = new Models.TypeInfo.TypeInfo(typeInfo);
+        //    modeltypeInfo.PropInfos = new List<IPropInfo>();
+        //    modeltypeInfo.MethodInfos = new List<IMethodInfo>();
+        //    modeltypeInfo.ImplementedInterfaces = new List<ITypeInfo>();
+        //    modeltypeInfo.CustomAttrs = new List<ITypeInfo>();
+        //    modeltypeInfo.ConstructorInfos = new List<IConstructorInfo>();
+        //    modeltypeInfo.FieldInfos = new List<IFieldInfo>();
+        //    modeltypeInfo.Namespace = typeInfo.Namespace;
+        //    modeltypeInfo.Name = typeInfo.Name;
+        //    modeltypeInfo.Assembly = typeInfo.Assembly != null ? typeInfo.Assembly.FullName : null;
+        //    modeltypeInfo.AssemblyQualifiedName = typeInfo.AssemblyQualifiedName;
+        //    modeltypeInfo.FullName = typeInfo.FullName;
+        //    modeltypeInfo.BaseType = typeInfo.BaseType != null ? typeInfo.BaseType.Name : null;
+        //    modeltypeInfo.Module = typeInfo.Module.Name;
+        //    modeltypeInfo.GUID = typeInfo.GUID;
+        //    modeltypeInfo.UnderlyingSystemType = typeInfo.UnderlyingSystemType != null ? typeInfo.UnderlyingSystemType.Name : null;
+        //    modeltypeInfo.IsAbstract = obj.GetType().IsAbstract;
 
-            return modeltypeInfo;
-        }
+        //    return modeltypeInfo;
+        //}
 
         public IPropInfo GetPropInfo(ObjInfo.ObjInfo objInfo, object obj, PropertyInfo _propInfo)
         {

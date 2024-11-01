@@ -44,8 +44,8 @@ namespace ObjectInfo.Models.GenericInfo
         /// <param name="getTypeInfo">Function to convert System.Type to ITypeInfo.</param>
         public GenericParameterInfo(Type genericParameter, Func<Type, ITypeInfo> getTypeInfo)
         {
-            if (!genericParameter.IsGenericParameter)
-                throw new ArgumentException("Type must be a generic parameter", nameof(genericParameter));
+            if (!genericParameter.IsGenericParameter && !genericParameter.IsGenericTypeDefinition)
+                throw new ArgumentException("Type must be a generic parameter or generic type definition", nameof(genericParameter));
 
             Name = genericParameter.Name;
             Position = genericParameter.GenericParameterPosition;
@@ -115,7 +115,7 @@ namespace ObjectInfo.Models.GenericInfo
         public static List<IGenericParameterInfo> CreateMany(Type[] genericParameters, Func<Type, ITypeInfo> getTypeInfo)
         {
             return genericParameters
-                .Where(t => t.IsGenericParameter)
+                .Where(t => t.IsGenericParameter || t.IsGenericTypeDefinition)
                 .Select(t => new GenericParameterInfo(t, getTypeInfo))
                 .Cast<IGenericParameterInfo>()
                 .ToList();

@@ -37,6 +37,7 @@ using ObjectInfo.Models.ObjectInfo;
 using static ObjectInfo.Unit.Tests.ObjectInfoService;
 using System;
 using System.Linq;
+using System.Reflection;
 
 namespace ObjectInfo.Unit.Tests
 {
@@ -124,11 +125,11 @@ namespace ObjectInfo.Unit.Tests
         public void ShouldNavigateGenericConstraints()
         {
             // given            
-            Type genericTypeDefinition = typeof(TestConstrainedGenericClass<>);
+            Type genericTypeDefinition = typeof(TestConstrainedGenericClass<>); // Get generic type definition directly
             IObjectInfoBroker objectInfoBroker = new ObjectInfoBroker();
-            ObjInfo? objectInfo = ObjectInfoService.RetrieveObjectInfo(objectInfoBroker, genericTypeDefinition);
 
-            // when
+            // when - create ObjectInfo from the type definition itself
+            ObjInfo? objectInfo = ObjectInfoService.RetrieveObjectInfo(objectInfoBroker, genericTypeDefinition);
             var genericTypeInfo = objectInfo!.TypeInfo;
 
             // then
@@ -138,9 +139,15 @@ namespace ObjectInfo.Unit.Tests
 
             var genericParam = genericTypeInfo.GenericParameters.FirstOrDefault();
             genericParam.Should().NotBeNull("Should have at least one generic parameter");
+
+            // Check constraints using our model's properties
             genericParam!.HasDefaultConstructorConstraint.Should().BeTrue("Should have new() constraint");
             genericParam.Constraints.Should().Contain(c => c.Name == "ITestConstraint",
                 "Should have ITestConstraint constraint");
+
+            // Additional verification
+            genericParam.Position.Should().Be(0, "Should be the first generic parameter");
+            genericParam.Name.Should().Be("T", "Generic parameter should be named 'T'");
         }
 
         [Fact]

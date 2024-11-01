@@ -49,6 +49,7 @@ namespace ObjectInfo.Models.TypeInfo
 
         public TypeInfo(Type type) : this(type.GetTypeInfo())
         {
+            // No additional logic needed - all handled in PopulateFromTypeInfo
         }
 
         private void Initialize()
@@ -83,6 +84,15 @@ namespace ObjectInfo.Models.TypeInfo
             IsConstructedGenericType = typeInfo.IsGenericType && !typeInfo.IsGenericTypeDefinition;
             IsGenericParameter = typeInfo.IsGenericParameter;
 
+            if (IsGenericTypeDefinition)
+            {
+                var genericParams = typeInfo.GetGenericArguments();
+                foreach (var param in genericParams)
+                {
+                    GenericParameters.Add(new GenericParameterInfo(param, t => new TypeInfo(t.GetTypeInfo())));
+                }
+            }
+
             if (IsConstructedGenericType)
             {
                 var genericTypeDef = typeInfo.GetGenericTypeDefinition();
@@ -90,16 +100,7 @@ namespace ObjectInfo.Models.TypeInfo
 
                 foreach (var argType in typeInfo.GenericTypeArguments)
                 {
-                    GenericTypeArguments.Add(new TypeInfo(argType));
-                }
-            }
-
-            if (IsGenericTypeDefinition)
-            {
-                var parameters = typeInfo.GetGenericArguments();
-                foreach (var param in parameters)
-                {
-                    GenericParameters.Add(new GenericParameterInfo(param, t => new TypeInfo(t)));
+                    GenericTypeArguments.Add(new TypeInfo(argType.GetTypeInfo()));
                 }
             }
 
@@ -116,7 +117,6 @@ namespace ObjectInfo.Models.TypeInfo
                 typeInfo.GetFields(BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static | BindingFlags.NonPublic)
             );
 
-            // Initialize event information
             EventInfos = EventInfo.EventInfo.CreateMany(
                 typeInfo.GetEvents(BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static | BindingFlags.NonPublic),
                 m => new MethodInfo.MethodInfo(m),
