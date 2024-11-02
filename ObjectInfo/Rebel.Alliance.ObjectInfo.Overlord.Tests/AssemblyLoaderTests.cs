@@ -51,11 +51,67 @@ namespace Rebel.Alliance.ObjectInfo.Overlord.Tests
 
             // Assert
             Assert.NotEmpty(types);
-            Assert.Contains(types, t => t == typeof(DerivedModel));
-            Assert.Contains(types, t => t == typeof(AnotherModel));
-            Assert.Contains(types, t => t == typeof(TestInterfaceImplementation));
-            Assert.Contains(types, t => typeof(IMetadataScanned).IsAssignableFrom(t));
+
+            // Types that implement IMetadataScanned
+            var expectedInterfaceTypes = new[]
+            {
+                typeof(DerivedModel),
+                typeof(AnotherModel),
+                typeof(ContainerModel),
+                typeof(ContainerModel.NestedModel),
+                typeof(GenericModel<>),
+                typeof(GenericModelWithConstraints<>),
+                typeof(AbstractTestModel),
+                typeof(ConcreteTestModel)
+            };
+
+                    // Types that have MetadataScan attribute but don't implement IMetadataScanned
+                    var expectedAttributeOnlyTypes = new[]
+                    {
+                typeof(BaseModel),
+                typeof(StaticTestModel),
+                typeof(ITestInterface),
+                typeof(TestInterfaceImplementation)  // This was the missing type!
+            };
+
+            // Verify expected interface-implementing types are found
+            foreach (var expectedType in expectedInterfaceTypes)
+            {
+                Assert.Contains(types, t => t == expectedType);
+            }
+
+            // Verify expected attribute-only types are found
+            foreach (var expectedType in expectedAttributeOnlyTypes)
+            {
+                Assert.Contains(types, t => t == expectedType);
+            }
+
+            // Verify each found type either implements the interface or has the attribute
+            foreach (var type in types)
+            {
+                bool isValid = typeof(IMetadataScanned).IsAssignableFrom(type) ||
+                              type.GetCustomAttributes(typeof(MetadataScanAttribute), true).Any();
+
+                Assert.True(isValid,
+                    $"Type {type.Name} should either implement IMetadataScanned or have MetadataScan attribute");
+            }
+
+            // Verify the total count matches expected number of types (8 + 4 = 12)
+            Assert.Equal(
+                expectedInterfaceTypes.Length + expectedAttributeOnlyTypes.Length,
+                types.Count);
+
+            // Additional debugging info
+            if (types.Count != expectedInterfaceTypes.Length + expectedAttributeOnlyTypes.Length)
+            {
+                var extraTypes = types.Except(expectedInterfaceTypes.Concat(expectedAttributeOnlyTypes));
+                foreach (var type in extraTypes)
+                {
+                    //_logger.LogInformation($"Unexpected type found: {type.FullName}");
+                }
+            }
         }
+
 
         [Fact]
         public void DiscoverTypes_FindsNestedTypes()
@@ -67,7 +123,12 @@ namespace Rebel.Alliance.ObjectInfo.Overlord.Tests
             var types = loader.DiscoverTypes(_testAssembly).ToList();
 
             // Assert
-            Assert.Contains(types, t => t == typeof(ContainerModel.NestedModel));
+            var nestedType = typeof(ContainerModel.NestedModel);
+            Assert.Contains(types, t => t == nestedType);
+
+            // Additional assertions to verify it's actually a nested type
+            Assert.True(nestedType.IsNested, "Type should be nested");
+            Assert.Equal(typeof(ContainerModel), nestedType.DeclaringType);
         }
 
         [Fact]
