@@ -10,6 +10,7 @@ namespace ObjectInfo.DeepDive.Analyzers
     {
         /// <summary>
         /// Gets the name of the analyzer.
+        /// This name should be unique within the system and is used to identify specific analyzers.
         /// </summary>
         string Name { get; }
 

@@ -38,6 +38,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ObjectInfo.Deepdive.SolidAn
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "CyclomaticComplexityAnalyzer", "CyclomaticComplexityAnalyzer", "{8BB2D048-78D9-49CB-BE1C-6249E27BE01E}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ObjectInfo.Overlord", "ObjectInfo.Overlord", "{6257933B-3B7F-4E4D-AA93-BC9F65665747}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rebel.Alliance.ObjectInfo.Overlord", "Rebel.Alliance.ObjectInfo.Overlord\Rebel.Alliance.ObjectInfo.Overlord.csproj", "{F0E2361F-615C-4582-9EF3-0F85DF98175F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -80,6 +84,10 @@ Global
 		{4A7D878C-0C03-414B-9AD4-AA88313D4588}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4A7D878C-0C03-414B-9AD4-AA88313D4588}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4A7D878C-0C03-414B-9AD4-AA88313D4588}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F0E2361F-615C-4582-9EF3-0F85DF98175F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F0E2361F-615C-4582-9EF3-0F85DF98175F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F0E2361F-615C-4582-9EF3-0F85DF98175F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F0E2361F-615C-4582-9EF3-0F85DF98175F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -97,6 +105,7 @@ Global
 		{7C66203E-8B8A-48D8-996A-1BAAE6E97008} = {0935EFC3-922F-4EDB-A0A8-E2D724F34D9D}
 		{4A7D878C-0C03-414B-9AD4-AA88313D4588} = {7C66203E-8B8A-48D8-996A-1BAAE6E97008}
 		{8BB2D048-78D9-49CB-BE1C-6249E27BE01E} = {0935EFC3-922F-4EDB-A0A8-E2D724F34D9D}
+		{F0E2361F-615C-4582-9EF3-0F85DF98175F} = {6257933B-3B7F-4E4D-AA93-BC9F65665747}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {6AEDE20E-109D-4079-BEEF-1A79F73B7350}

@@ -1,11 +1,7 @@
-using ObjectInfo.Models.ObjectInfo;
 using ObjectInfo.DeepDive.Analyzers;
 using ObjectInfo.DeepDive.Analysis;
+using ObjectInfo.Models.ObjectInfo;
 using Serilog;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace ObjectInfo.DeepDive
 {
@@ -16,42 +12,55 @@ namespace ObjectInfo.DeepDive
 
         public AnalyzerManager(IEnumerable<IAnalyzer> analyzers, ILogger logger)
         {
-            _analyzers = analyzers;
-            _logger = logger;
+            _analyzers = analyzers ?? throw new ArgumentNullException(nameof(analyzers));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        }
+
+        /// <summary>
+        /// Gets an analyzer by its name.
+        /// </summary>
+        /// <param name="analyzerName">The name of the analyzer to retrieve.</param>
+        /// <returns>The requested analyzer, or throws if not found.</returns>
+        /// <exception cref="InvalidOperationException">Thrown when the analyzer is not found.</exception>
+        public IAnalyzer GetAnalyzer(string analyzerName)
+        {
+            ArgumentException.ThrowIfNullOrEmpty(analyzerName);
+            
+            var analyzer = _analyzers.FirstOrDefault(a => a.Name.Equals(analyzerName, StringComparison.OrdinalIgnoreCase));
+            if (analyzer == null)
+            {
+                throw new InvalidOperationException($"Analyzer not found: {analyzerName}");
+            }
+            
+            return analyzer;
         }
 
         public async Task<IEnumerable<AnalysisResult>> RunAnalyzersAsync(ObjInfo objInfo)
         {
-            _logger.Information($"AnalyzerManager.RunAnalyzersAsync started for type: {objInfo.TypeInfo.Name}");
-            _logger.Information($"Number of registered analyzers: {_analyzers.Count()}");
+            ArgumentNullException.ThrowIfNull(objInfo);
 
             var results = new List<AnalysisResult>();
-            var context = new AnalysisContext(objInfo);
-
             foreach (var analyzer in _analyzers)
             {
-                _logger.Information($"Running analyzer: {analyzer.GetType().Name}");
                 try
                 {
+                    var context = new AnalysisContext(objInfo);
                     var result = await analyzer.AnalyzeAsync(context);
-                    if (result != null)
-                    {
-                        _logger.Information($"Analyzer {analyzer.GetType().Name} returned a result");
-                        results.Add(result);
-                    }
-                    else
-                    {
-                        _logger.Warning($"Analyzer {analyzer.GetType().Name} returned null");
-                    }
+                    results.Add(result);
                 }
                 catch (Exception ex)
                 {
-                    _logger.Error(ex, $"Error running analyzer {analyzer.GetType().Name}");
+                    _logger.Error(ex, "Error running analyzer {AnalyzerName}", analyzer.Name);
                 }
             }
 
-            _logger.Information($"AnalyzerManager.RunAnalyzersAsync completed. Total results: {results.Count}");
             return results;
+        }
+
+        public async Task<AnalysisResult> RunAnalyzerAsync(string analyzerName, AnalysisContext context)
+        {
+            var analyzer = GetAnalyzer(analyzerName);
+            return await analyzer.AnalyzeAsync(context);
         }
     }
 }

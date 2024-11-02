@@ -1,0 +1,56 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<Title>Rebel.Alliance.ObjectInfo.Overlord</Title>
+		<GeneratePackageOnBuild>False</GeneratePackageOnBuild>
+		<Copyright>Copyright (c) The Rebel Alliance</Copyright>
+		<Description>
+			A centralized metadata provider for the ObjectInfo ecosystem. This library provides efficient type scanning
+			and caching capabilities, integrating the ObjectInfo core library with its various analyzers.
+
+			Features:
+			- Selective type scanning using markers
+			- Efficient metadata caching
+			- Integration with ObjectInfo analyzers
+			- Dependency injection support
+		</Description>
+		<PackageProjectUrl>https://github.com/Rebel-Alliance-2023/Rebel.Alliance.ObjectInfo.Overlord</PackageProjectUrl>
+		<PackageIcon>Rebel.Alliance.Icon.01.jpg</PackageIcon>
+		<RepositoryUrl>https://github.com/Rebel-Alliance-2023/Rebel.Alliance.ObjectInfo.Overlord</RepositoryUrl>
+		<PackageTags>.NET;Reflection;Metadata;Analysis</PackageTags>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
+		<LangVersion>latest</LangVersion>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\ObjectInfo\ObjectInfo.csproj" />
+		<ProjectReference Include="..\ObjectInfo.Deepdive\ObjectInfo.Deepdive.csproj" />
+		<ProjectReference Include="..\ObjectInfo.Deepdive.CyclomaticComplexityAnalyzer\ObjectInfo.Deepdive.CyclomaticComplexityAnalyzer.csproj" />
+		<ProjectReference Include="..\ObjectInfo.Deepdive.SolidAnalyzer\ObjectInfo.Deepdive.SolidAnalyzer.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.0" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.0" />
+		<PackageReference Include="System.Collections.Concurrent" Version="4.3.0" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Include="README.md">
+			<Pack>True</Pack>
+			<PackagePath>\</PackagePath>
+		</None>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <None Update="Rebel.Alliance.Icon.01.png">
+	    <PackagePath>icon</PackagePath>
+	    <Pack>true</Pack>
+	  </None>
+	</ItemGroup>
+
+</Project>
