@@ -1,250 +1,252 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using ObjectInfo.DeepDive.Analyzers;
-using ObjectInfo.DeepDive.Analysis;
-using ObjectInfo.Models.TypeInfo;
-using ObjectInfo.Models.ObjectInfo;
-using ObjectInfo.Models.MethodInfo;
-using ObjectInfo.Models.PropInfo;
-using Serilog;
+﻿ ObjectInfo.Unit.Tests.ObjectInfoBrokerTest.ShouldNavigateMethodInfo
+   Source: ObjectInfoBrokerTest.cs line 194
+   Duration: 3 ms
 
-namespace ObjectInfo.Deepdive.SolidAnalyzer
-{
-    public class SolidAnalyzer : IAnalyzer
-    {
-        private readonly ILogger _logger;
-        private readonly SolidAnalyzerConfig _config;
+  Message: 
+System.NullReferenceException : Object reference not set to an instance of an object.
 
-        public string Name => "SOLID Principles Analyzer";
+  Stack Trace: 
+<>c.<ShouldNavigateMethodInfo>b__7_0(IMethodInfo a) line 203
+Enumerable.TryGetFirst[TSource](IEnumerable`1 source, Func`2 predicate, Boolean& found)
+Enumerable.FirstOrDefault[TSource](IEnumerable`1 source, Func`2 predicate)
+ObjectInfoBrokerTest.ShouldNavigateMethodInfo() line 202
+RuntimeMethodHandle.InvokeMethod(Object target, Void** arguments, Signature sig, Boolean isConstructor)
+MethodInvoker.Invoke(Object obj, IntPtr* args, BindingFlags invokeAttr)
+__________
+ ObjectInfo.Unit.Tests.ObjectInfoBrokerTest.ShouldNavigateMethodAttributeInfo
+   Source: ObjectInfoBrokerTest.cs line 301
+   Duration: < 1 ms
 
-        public SolidAnalyzer(ILogger logger, SolidAnalyzerConfig config = null)
-        {
-            _logger = logger;
-            _config = config ?? new SolidAnalyzerConfig();
-        }
+  Message: 
+System.NullReferenceException : Object reference not set to an instance of an object.
 
-        public async Task<AnalysisResult> AnalyzeAsync(AnalysisContext context)
-        {
-            _logger.Information($"SolidAnalyzer.AnalyzeAsync started for type: {context.Target?.GetType().Name}");
+  Stack Trace: 
+<>c.<ShouldNavigateMethodAttributeInfo>b__13_0(IMethodInfo a) line 310
+Enumerable.TryGetFirst[TSource](IEnumerable`1 source, Func`2 predicate, Boolean& found)
+Enumerable.FirstOrDefault[TSource](IEnumerable`1 source, Func`2 predicate)
+ObjectInfoBrokerTest.ShouldNavigateMethodAttributeInfo() line 309
+RuntimeMethodHandle.InvokeMethod(Object target, Void** arguments, Signature sig, Boolean isConstructor)
+MethodInvoker.Invoke(Object obj, IntPtr* args, BindingFlags invokeAttr)
+_______
 
-            if (context.Target is ObjInfo objInfo)
-            {
-                return await AnalyzeTypeAsync(objInfo.TypeInfo);
-            }
-            else if (context.Target is ITypeInfo typeInfo)
-            {
-                return await AnalyzeTypeAsync(typeInfo);
-            }
-            else
-            {
-                _logger.Warning($"Invalid analysis target type: {context.Target?.GetType().Name}");
-                return new AnalysisResult(Name, "Invalid analysis target", "The provided context does not contain a valid ObjInfo or ITypeInfo instance.");
-            }
-        }
+ ObjectInfo.Unit.Tests.ObjectInfoBrokerTest.ShouldNavigateFieldInfo
+   Source: ObjectInfoBrokerTest.cs line 68
+   Duration: 9 ms
 
-        private async Task<TypeAnalysisResult> AnalyzeTypeAsync(ITypeInfo typeInfo)
-        {
-            _logger.Information($"Analyzing type: {typeInfo.Name}");
+  Message: 
+Expected readOnlyField!.Value to be "ReadOnly Value", but found <null>.
 
-            var result = new SolidAnalysisResult(Name, typeInfo.Name, "SOLID Analysis Complete", "");
+  Stack Trace: 
+XUnit2TestFramework.Throw(String message)
+TestFrameworkProvider.Throw(String message)
+DefaultAssertionStrategy.HandleFailure(String message)
+AssertionScope.FailWith(Func`1 failReasonFunc)
+AssertionScope.FailWith(Func`1 failReasonFunc)
+AssertionScope.FailWith(String message, Object[] args)
+ObjectAssertions`2.Be(TSubject expected, String because, Object[] becauseArgs)
+ObjectInfoBrokerTest.ShouldNavigateFieldInfo() line 86
+RuntimeMethodHandle.InvokeMethod(Object target, Void** arguments, Signature sig, Boolean isConstructor)
+MethodInvoker.Invoke(Object obj, IntPtr* args, BindingFlags invokeAttr)
+_______
 
-            result.SingleResponsibilityAnalysis = AnalyzeSrp(typeInfo);
-            result.OpenClosedAnalysis = AnalyzeOcp(typeInfo);
-            result.LiskovSubstitutionAnalysis = AnalyzeLsp(typeInfo);
-            result.InterfaceSegregationAnalysis = AnalyzeIsp(typeInfo);
-            result.DependencyInversionAnalysis = AnalyzeDip(typeInfo);
+ ObjectInfo.Unit.Tests.ObjectInfoBrokerTest.ShouldNavigateFieldAttributes
+   Source: ObjectInfoBrokerTest.cs line 90
+   Duration: < 1 ms
 
-            result.Details = result.ToString();
+  Message: 
+Expected attribute not to be <null>.
 
-            return result;
-        }
+  Stack Trace: 
+XUnit2TestFramework.Throw(String message)
+TestFrameworkProvider.Throw(String message)
+DefaultAssertionStrategy.HandleFailure(String message)
+AssertionScope.FailWith(Func`1 failReasonFunc)
+AssertionScope.FailWith(Func`1 failReasonFunc)
+AssertionScope.FailWith(String message)
+ReferenceTypeAssertions`2.NotBeNull(String because, Object[] becauseArgs)
+ObjectInfoBrokerTest.ShouldNavigateFieldAttributes() line 102
+RuntimeMethodHandle.InvokeMethod(Object target, Void** arguments, Signature sig, Boolean isConstructor)
+MethodInvoker.Invoke(Object obj, IntPtr* args, BindingFlags invokeAttr)
+_______
 
-        private SrpAnalysis AnalyzeSrp(ITypeInfo typeInfo)
-        {
-            var publicMembers = typeInfo.MethodInfos.Count() + typeInfo.PropInfos.Count();
+ ObjectInfo.Unit.Tests.ObjectInfoBrokerTest.ShouldNavigateConstructorAttributeInfo
+   Source: ObjectInfoBrokerTest.cs line 248
+   Duration: 38 ms
 
-            var analysis = new SrpAnalysis
-            {
-                PublicMemberCount = publicMembers,
-                Violations = new List<string>()
-            };
+  Message: 
+Expected attribute not to be <null>.
 
-            if (publicMembers > _config.MaxMethodsPerClass)
-            {
-                analysis.Violations.Add($"Class has {publicMembers} public members, which exceeds the recommended maximum of {_config.MaxMethodsPerClass}.");
-            }
+  Stack Trace: 
+XUnit2TestFramework.Throw(String message)
+TestFrameworkProvider.Throw(String message)
+DefaultAssertionStrategy.HandleFailure(String message)
+AssertionScope.FailWith(Func`1 failReasonFunc)
+AssertionScope.FailWith(Func`1 failReasonFunc)
+AssertionScope.FailWith(String message)
+ReferenceTypeAssertions`2.NotBeNull(String because, Object[] becauseArgs)
+ObjectInfoBrokerTest.ShouldNavigateConstructorAttributeInfo() line 260
+RuntimeMethodHandle.InvokeMethod(Object target, Void** arguments, Signature sig, Boolean isConstructor)
+MethodInvoker.Invoke(Object obj, IntPtr* args, BindingFlags invokeAttr)
+_______
 
-            return analysis;
-        }
+ ObjectInfo.Deepdive.SolidAnalyzer.Tests.SolidAnalyzerTests.AnalyzeType_ShouldIdentifyIspViolation
+   Source: SolidAnalyzerTests.cs line 158
+   Duration: 2 ms
 
-        private OcpAnalysis AnalyzeOcp(ITypeInfo typeInfo)
-        {
-            var analysis = new OcpAnalysis
-            {
-                IsAbstract = typeInfo.Name.StartsWith("abstract", StringComparison.OrdinalIgnoreCase),
-                VirtualMethodCount = typeInfo.MethodInfos.Count(m => m.Name.StartsWith("virtual", StringComparison.OrdinalIgnoreCase)),
-                Violations = new List<string>()
-            };
+  Message: 
+Assert.Contains() Failure: Sub-string not found
+String:    "Interfaces Implemented: 1\nViolations: "
+Not found: "does not fully implement interface"
 
-            if (!analysis.IsAbstract && analysis.VirtualMethodCount == 0)
-            {
-                analysis.Violations.Add("Class is not abstract and contains no virtual methods, potentially violating OCP.");
-            }
+  Stack Trace: 
+SolidAnalyzerTests.AnalyzeType_ShouldIdentifyIspViolation() line 163
+--- End of stack trace from previous location ---
 
-            return analysis;
-        }
+  Standard Output: 
+[15:40:54 INF] Plugin directory path: E:\Archive\GitHub\dlandi\Rebel.Alliance.ObjectInfo\ObjectInfo\ObjectInfo.Deepdive.SolidAnalyzer.Tests\bin\Debug\net8.0\Plugins
+[15:40:54 INF] Registered services:
+[15:40:54 INF] - DeepDiveConfiguration - N/A
+[15:40:54 INF] - AnalyzerManager - AnalyzerManager
+[15:40:54 INF] - IObjectInfoBroker - ObjectInfoBroker
+[15:40:54 INF] - ILogger - N/A
+[15:40:54 INF] - AnalyzerManager - AnalyzerManager
+[15:40:54 INF] - IAnalyzer - SolidAnalyzer
+[15:40:54 INF] AnalyzerManager is registered
+[15:40:54 INF] SolidAnalyzer is registered: SolidAnalyzer
+[15:40:54 INF] Analyzing object of type: IspViolationClass
+[15:40:54 INF] ObjectInfo created: IspViolationClass
+[15:40:54 INF] Running all analyzers...
+[15:40:54 INF] DeepDiveAnalysis.RunAllAnalyzersAsync started
+[15:40:54 INF] SolidAnalyzer.AnalyzeAsync started for type: ObjInfo
+[15:40:54 INF] Analyzing type: IspViolationClass
+[15:40:54 INF] Analyzing type IspViolationClass: IsAbstract=False, VirtualMethodCount=10
+[15:40:54 INF] Method  is virtual: True
+[15:40:54 INF] Method  is virtual: True
+[15:40:54 INF] Method  is virtual: True
+[15:40:54 INF] Method  is virtual: False
+[15:40:54 INF] Method  is virtual: False
+[15:40:54 INF] Method  is virtual: True
+[15:40:54 INF] Method  is virtual: True
+[15:40:54 INF] Method  is virtual: True
+[15:40:54 INF] Method  is virtual: True
+[15:40:54 INF] Method Method1 is virtual: True
+[15:40:54 INF] Method Method2 is virtual: True
+[15:40:54 INF] Method Method3 is virtual: True
+[15:40:54 INF] Analyzing interface ILargeInterface with 3 methods.
+[15:40:54 INF] DeepDiveAnalysis.RunAllAnalyzersAsync completed. Results count: 1
+[15:40:54 INF] Number of analysis results: 1
+[15:40:54 INF] Analyzer: SOLID Principles Analyzer, Summary: SOLID Analysis Complete
+[15:40:54 INF] SOLID Principles Analyzer result found
 
-        private LspAnalysis AnalyzeLsp(ITypeInfo typeInfo)
-        {
-            var analysis = new LspAnalysis
-            {
-                Violations = new List<string>()
-            };
+_______
 
-            if (typeInfo.BaseType != null)
-            {
-                foreach (var method in typeInfo.MethodInfos)
-                {
-                    if (method.Name.StartsWith("override", StringComparison.OrdinalIgnoreCase))
-                    {
-                        analysis.Violations.Add($"Method {method.Name} may violate LSP. Manual review recommended.");
-                    }
-                }
-            }
+ ObjectInfo.DeepDive.Tests.CyclomaticComplexityAnalyzerTests.AnalyzeComplexMethod_ShouldReturnModerateComplexity
+   Source: CyclomaticComplexityAnalyzerTests.cs line 95
+   Duration: 666 ms
 
-            return analysis;
-        }
+  Message: 
+Assert.NotNull() Failure: Value is null
 
-        private IspAnalysis AnalyzeIsp(ITypeInfo typeInfo)
-        {
-            var analysis = new IspAnalysis
-            {
-                InterfaceCount = typeInfo.ImplementedInterfaces.Count(),
-                Violations = new List<string>()
-            };
+  Stack Trace: 
+CyclomaticComplexityAnalyzerTests.AnalyzeComplexMethod_ShouldReturnModerateComplexity() line 127
+--- End of stack trace from previous location ---
 
-            foreach (var iface in typeInfo.ImplementedInterfaces)
-            {
-                if (iface.MethodInfos.Count() > 5)
-                {
-                    analysis.Violations.Add($"Interface {iface.Name} has more than 5 methods, potentially violating ISP.");
-                }
-            }
+  Standard Output: 
+[15:40:55 INF] Plugin directory path: E:\Archive\GitHub\dlandi\Rebel.Alliance.ObjectInfo\ObjectInfo\ObjectInfo.DeepDive.Tests\bin\Debug\net8.0\Plugins
+[15:40:55 INF] Registered analyzer: CyclomaticComplexityAnalyzer
+[15:40:55 INF] Registered service: DeepDiveConfiguration - N/A
+[15:40:55 INF] Registered service: AnalyzerManager - AnalyzerManager
+[15:40:55 INF] Registered service: IObjectInfoBroker - ObjectInfoBroker
+[15:40:55 INF] Registered service: ILogger - N/A
+[15:40:55 INF] Registered service: AnalyzerManager - AnalyzerManager
+[15:40:55 INF] Registered service: IAnalyzer - CyclomaticComplexityAnalyzer
+[15:40:55 INF] AnalyzerManager type: ObjectInfo.DeepDive.AnalyzerManager
+[15:40:55 INF] Analyzing type: ComplexClass
+[15:40:55 INF] Method found:
+[15:40:55 INF] Method found:
+[15:40:55 INF] Method found:
+[15:40:55 INF] Method found:
+[15:40:55 INF] Method found:
+[15:40:55 INF] Method found:
+[15:40:55 INF] Method found:
+[15:40:55 INF] Method found: ComplexMethod
+[15:40:55 INF] Running all analyzers
+[15:40:55 INF] DeepDiveAnalysis.RunAllAnalyzersAsync started
+[15:40:55 INF] CyclomaticComplexityAnalyzer.AnalyzeAsync started
+[15:40:55 INF] Analyzing method:  in type:
+[15:40:55 INF] Getting method body for:  in type:
+[15:40:55 INF] Searching for type:
+[15:40:55 INF] Searching in assembly: System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e
+[15:40:55 INF] Searching in assembly: testhost, Version=15.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a
+[15:40:55 INF] Searching in assembly: System.Runtime, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a
+[15:40:55 INF] Searching in assembly: Microsoft.TestPlatform.CoreUtilities, Version=15.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a
+[15:40:55 INF] Searching in assembly: System.Diagnostics.Tracing, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a
+[15:40:55 INF] Searching in assembly: System.Diagnostics.Debug, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a
+[15:40:55 INF] Searching in assembly: System.Runtime.Extensions, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a
+[15:40:55 INF] Searching in assembly: System.Diagnostics.Process, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a
+[15:40:55 INF] Searching in assembly: System.ComponentModel.Primitives, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a
+[15:40:55 INF] Searching in assembly: Microsoft.TestPlatform.PlatformAbstractions, Version=15.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a
+[15:40:55 INF] Searching in assembly: System.Collections, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a
+[15:40:55 INF] Searching in assembly: Microsoft.TestPlatform.CrossPlatEngine, Version=15.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a
+[15:40:55 INF] Searching in assembly: netstandard, Version=2.1.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51
+[15:40:55 INF] Searching in assembly: Microsoft.TestPlatform.CommunicationUtilities, Version=15.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a
+[15:40:55 INF] Searching in assembly: Microsoft.VisualStudio.TestPlatform.ObjectModel, Version=15.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a
+[15:40:55 INF] Searching in assembly: Microsoft.VisualStudio.TestPlatform.Common, Version=15.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a
+[15:40:55 INF] Searching in assembly: Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed
+[15:40:55 INF] Searching in assembly: System.Runtime.Serialization.Formatters, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a
+[15:40:55 INF] Searching in assembly: System.Collections.Concurrent, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a
+[15:40:55 INF] Searching in assembly: System.Diagnostics.TraceSource, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a
+[15:40:55 INF] Searching in assembly: System.Threading, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a
+[15:40:55 INF] Searching in assembly: System.IO.FileSystem, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a
+[15:40:55 INF] Searching in assembly: System.Runtime.InteropServices, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a
+[15:40:55 INF] Searching in assembly: System.Memory, Version=8.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51
+[15:40:55 INF] Searching in assembly: Microsoft.Win32.Primitives, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a
+[15:40:55 INF] Searching in assembly: System.Threading.ThreadPool, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a
+[15:40:55 INF] Searching in assembly: System.Net.Primitives, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a
+[15:40:55 INF] Searching in assembly: System.Collections.NonGeneric, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a
+[15:40:55 INF] Searching in assembly: System.Net.Sockets, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a
+[15:40:55 INF] Searching in assembly: System.Private.Uri, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a
+[15:40:55 INF] Searching in assembly: System.Threading.Overlapped, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a
+[15:40:55 INF] Searching in assembly: System.Runtime.Intrinsics, Version=8.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51
+[15:40:55 INF] Searching in assembly: System.Linq.Expressions, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a
+[15:40:55 INF] Searching in assembly: System.Runtime.Numerics, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a
+[15:40:55 INF] Searching in assembly: System.Linq, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a
+[15:40:55 INF] Searching in assembly: System.ComponentModel.TypeConverter, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a
+[15:40:55 INF] Searching in assembly: System.ObjectModel, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a
+[15:40:55 INF] Searching in assembly: System.Runtime.Serialization.Primitives, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a
+[15:40:55 INF] Searching in assembly: System.Data.Common, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a
+[15:40:55 INF] Searching in assembly: System.Xml.ReaderWriter, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a
+[15:40:55 INF] Searching in assembly: System.Private.Xml, Version=8.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51
+[15:40:55 INF] Searching in assembly: System.ComponentModel, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a
+[15:40:55 INF] Searching in assembly: System.Reflection.Emit.ILGeneration, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a
+[15:40:55 INF] Searching in assembly: System.Reflection.Emit.Lightweight, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a
+[15:40:55 INF] Searching in assembly: System.Reflection.Primitives, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a
+[15:40:55 INF] Searching in assembly: Anonymously Hosted DynamicMethods Assembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+[15:40:55 INF] Searching in assembly: System.Runtime.Loader, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a
+[15:40:55 INF] Searching in assembly: System.Reflection.Metadata, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a
+[15:40:55 INF] Searching in assembly: System.IO.MemoryMappedFiles, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a
+[15:40:55 INF] Searching in assembly: System.Collections.Immutable, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a
+[15:40:55 INF] Searching in assembly: System.Text.Encoding.Extensions, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a
+[15:40:55 INF] Searching in assembly: xunit.runner.visualstudio.dotnetcore.testadapter, Version=2.5.0.0, Culture=neutral, PublicKeyToken=null
+[15:40:55 INF] Searching in assembly: xunit.runner.visualstudio.dotnetcore.testadapter, Version=2.5.0.0, Culture=neutral, PublicKeyToken=null
+[15:40:55 INF] Searching in assembly: xunit.runner.utility.netcoreapp10, Version=2.5.2.0, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c
+[15:40:55 INF] Searching in assembly: xunit.abstractions, Version=2.0.0.0, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c
+[15:40:55 INF] Searching in assembly: System.Runtime.InteropServices.RuntimeInformation, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a
+[15:40:55 INF] Searching in assembly: NuGet.Frameworks, Version=6.5.0.154, Culture=neutral, PublicKeyToken=31bf3856ad364e35
+[15:40:55 INF] Searching in assembly: System.Xml.XDocument, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a
+[15:40:55 INF] Searching in assembly: System.Private.Xml.Linq, Version=8.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51
+[15:40:55 INF] Searching in assembly: System.Threading.Thread, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a
+[15:40:55 INF] Searching in assembly: System.IO, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a
+[15:40:55 INF] Searching in assembly: System.Reflection, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a
+[15:40:55 INF] Searching in assembly: System.Reflection.TypeExtensions, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a
+[15:40:55 INF] Searching in assembly: xunit.runner.reporters.netcoreapp10, Version=2.5.2.0, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c
+[15:40:55 INF] Searching in assembly: System.Threading.Tasks, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a
+[15:40:55 INF] Searching in assembly: System.Net.Http, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a
+[15:40:55 INF] Searching in assembly: System.Reflection.Extensions, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a
+[15:40:55 INF] Searching in assembly: xunit.runner.visualstudio.dotnetcore.testadapter, Version=2.5.0.0, Culture=neutral, PublicKeyToken=null
+[15:40:55 INF] Searching in assembly: ObjectInfo.DeepDive.CyclomaticComplexityAnalyzer.Tests, Version=1.0.
+... <truncated>
 
-            return analysis;
-        }
+  (result has additional output)
 
-        private DipAnalysis AnalyzeDip(ITypeInfo typeInfo)
-        {
-            var analysis = new DipAnalysis
-            {
-                DependencyCount = 0,
-                AbstractDependencyCount = 0,
-                Violations = new List<string>()
-            };
-
-            foreach (var prop in typeInfo.PropInfos)
-            {
-                analysis.DependencyCount++;
-                if (prop.PropertyType.StartsWith("interface", StringComparison.OrdinalIgnoreCase) || 
-                    prop.PropertyType.StartsWith("abstract", StringComparison.OrdinalIgnoreCase))
-                {
-                    analysis.AbstractDependencyCount++;
-                }
-                else
-                {
-                    analysis.Violations.Add($"Property {prop.Name} is a concrete type, potentially violating DIP.");
-                }
-            }
-
-            return analysis;
-        }
-    }
-
-    public class SolidAnalysisResult : TypeAnalysisResult
-    {
-        public SrpAnalysis SingleResponsibilityAnalysis { get; set; }
-        public OcpAnalysis OpenClosedAnalysis { get; set; }
-        public LspAnalysis LiskovSubstitutionAnalysis { get; set; }
-        public IspAnalysis InterfaceSegregationAnalysis { get; set; }
-        public DipAnalysis DependencyInversionAnalysis { get; set; }
-
-        public SolidAnalysisResult(string analyzerName, string typeName, string summary, string details)
-            : base(analyzerName, typeName, summary, details, 0, 0) 
-        {
-            SingleResponsibilityAnalysis = new SrpAnalysis();
-            OpenClosedAnalysis = new OcpAnalysis();
-            LiskovSubstitutionAnalysis = new LspAnalysis();
-            InterfaceSegregationAnalysis = new IspAnalysis();
-            DependencyInversionAnalysis = new DipAnalysis();
-        }
-
-        public override string ToString()
-        {
-            return $"SOLID Analysis Results for {TypeName}:\n\n" +
-                   $"Single Responsibility Principle:\n{SingleResponsibilityAnalysis}\n\n" +
-                   $"Open-Closed Principle:\n{OpenClosedAnalysis}\n\n" +
-                   $"Liskov Substitution Principle:\n{LiskovSubstitutionAnalysis}\n\n" +
-                   $"Interface Segregation Principle:\n{InterfaceSegregationAnalysis}\n\n" +
-                   $"Dependency Inversion Principle:\n{DependencyInversionAnalysis}";
-        }
-    }
-
-    public class SrpAnalysis
-    {
-        public int PublicMemberCount { get; set; }
-        public List<string> Violations { get; set; } = new List<string>();
-
-        public override string ToString() => 
-            $"Public Members: {PublicMemberCount}\nViolations: {string.Join(", ", Violations)}";
-    }
-
-    public class OcpAnalysis
-    {
-        public bool IsAbstract { get; set; }
-        public int VirtualMethodCount { get; set; }
-        public List<string> Violations { get; set; } = new List<string>();
-
-        public override string ToString() => 
-            $"Is Abstract: {IsAbstract}\nVirtual Methods: {VirtualMethodCount}\nViolations: {string.Join(", ", Violations)}";
-    }
-
-    public class LspAnalysis
-    {
-        public List<string> Violations { get; set; } = new List<string>();
-
-        public override string ToString() => 
-            $"Violations: {string.Join(", ", Violations)}";
-    }
-
-    public class IspAnalysis
-    {
-        public int InterfaceCount { get; set; }
-        public List<string> Violations { get; set; } = new List<string>();
-
-        public override string ToString() => 
-            $"Interfaces Implemented: {InterfaceCount}\nViolations: {string.Join(", ", Violations)}";
-    }
-
-    public class DipAnalysis
-    {
-        public int DependencyCount { get; set; }
-        public int AbstractDependencyCount { get; set; }
-        public List<string> Violations { get; set; } = new List<string>();
-
-        public override string ToString() => 
-            $"Total Dependencies: {DependencyCount}\nAbstract Dependencies: {AbstractDependencyCount}\nViolations: {string.Join(", ", Violations)}";
-    }
-
-    public class SolidAnalyzerConfig
-    {
-        public int MaxMethodsPerClass { get; set; } = 10;
-        public bool AnalyzeSrp { get; set; } = true;
-        public bool AnalyzeOcp { get; set; } = true;
-        public bool AnalyzeLsp { get; set; } = true;
-        public bool AnalyzeIsp { get; set; } = true;
-        public bool AnalyzeDip { get; set; } = true;
-    }
-}
+   Open test log

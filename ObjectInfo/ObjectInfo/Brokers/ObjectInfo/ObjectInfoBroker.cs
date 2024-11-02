@@ -28,26 +28,149 @@ namespace ObjectInfo.Brokers.ObjectInfo
 {
     public class ObjectInfoBroker : IObjectInfoBroker
     {
-        public ObjInfo.IObjInfo GetObjectInfo(object obj, IConfigInfo configuration = null)
+        public IObjInfo GetObjectInfo(object obj, IConfigInfo configuration = null)
         {
             Type type = obj is Type t ? t : obj.GetType();
             ObjInfo.ObjInfo objInfo = new ObjInfo.ObjInfo
             {
                 Configuration = configuration ?? new ConfigInfo(),
-                TypeInfo = GetTypeInfo(obj)
+                TypeInfo = GetTypeInfo(type)
             };
 
-            GetTypeProps(obj, objInfo, type.GetProperties());
-            GetTypeMethods(objInfo, type, type.GetMethods());
-            GetTypeConstructors(objInfo, type, type.GetConstructors());
-            GetTypeFields(obj, objInfo, type.GetFields());
-            GetTypeEvents(objInfo, type, type.GetEvents());
-            GetTypelIntfcs(objInfo, type.GetInterfaces());
-            GetTypeAttrs(objInfo, type.GetCustomAttributes(false));
-            GetTypeGenericInfo(objInfo, type);
+            try
+            {
+                var instance = obj is Type ? null : obj;
+                GetTypeProps(instance, objInfo, type.GetProperties());
+                GetTypeMethods(objInfo, type, type.GetMethods());
+                GetTypeConstructors(objInfo, type, type.GetConstructors());
+                GetTypeFields(instance, objInfo, type.GetFields());
+                GetTypeEvents(objInfo, type, type.GetEvents());
+                GetTypelIntfcs(objInfo, type.GetInterfaces());
+                GetTypeAttrs(objInfo, type.GetCustomAttributes(false));
+                GetTypeGenericInfo(objInfo, type);
+            }
+            catch
+            {
+                // Log error but return what we have
+            }
 
             return objInfo;
         }
+
+        private void GetTypeProps(object obj, ObjInfo.ObjInfo objInfo, PropertyInfo[] propInfos)
+        {
+            foreach (var prop in propInfos)
+            {
+                try
+                {
+                    if (obj is Type)
+                    {
+                        // If obj is a Type, add property info without values
+                        var propInfo = new PropInfo
+                        {
+                            Name = prop.Name,
+                            CanWrite = prop.CanWrite,
+                            CanRead = prop.CanRead,
+                            PropertyType = prop.PropertyType?.Name,
+                            DeclaringType = prop.DeclaringType?.Name,
+                            ReflectedType = prop.ReflectedType?.Name,
+                            CustomAttrs = new List<ITypeInfo>()
+                        };
+                        objInfo.TypeInfo.PropInfos.Add(propInfo);
+                    }
+                    else
+                    {
+                        // Keep existing behavior for actual instances
+                        objInfo.TypeInfo.PropInfos.Add(GetPropInfo(objInfo, obj, prop));
+                    }
+                }
+                catch (Exception)
+                {
+                    // Log but continue to next property
+                }
+            }
+        }
+
+        private ITypeInfo GetTypeInfo(object obj)
+        {
+            Type type;
+            if (obj is Type t)
+            {
+                type = t;
+            }
+            else
+            {
+                type = obj.GetType();
+            }
+
+            System.Reflection.TypeInfo typeInfo = type.GetTypeInfo();
+            Models.TypeInfo.TypeInfo modelTypeInfo = new Models.TypeInfo.TypeInfo(typeInfo)
+            {
+                PropInfos = new List<IPropInfo>(),
+                MethodInfos = new List<IMethodInfo>(),
+                ImplementedInterfaces = new List<ITypeInfo>(),
+                CustomAttrs = new List<ITypeInfo>(),
+                ConstructorInfos = new List<IConstructorInfo>(),
+                FieldInfos = new List<IFieldInfo>(),
+                GenericParameters = new List<IGenericParameterInfo>(),
+                GenericTypeArguments = new List<ITypeInfo>(),
+                Namespace = typeInfo.Namespace,
+                Name = typeInfo.Name,
+                Assembly = typeInfo.Assembly?.FullName,
+                AssemblyQualifiedName = typeInfo.AssemblyQualifiedName,
+                FullName = typeInfo.FullName,
+                BaseType = typeInfo.BaseType?.Name,
+                Module = typeInfo.Module?.Name,
+                GUID = typeInfo.GUID,
+                UnderlyingSystemType = typeInfo.UnderlyingSystemType?.Name,
+                IsAbstract = typeInfo.IsAbstract,
+                IsGenericTypeDefinition = typeInfo.IsGenericTypeDefinition,
+                IsConstructedGenericType = type.IsGenericType && !type.IsGenericTypeDefinition
+            };
+
+            if (type.IsGenericType)
+            {
+                PopulateGenericTypeInfo(type, modelTypeInfo);
+            }
+
+            return modelTypeInfo;
+        }
+
+        private void PopulateGenericTypeInfo(Type type, Models.TypeInfo.TypeInfo modelTypeInfo)
+        {
+            if (type.IsGenericTypeDefinition)
+            {
+                modelTypeInfo.IsGenericTypeDefinition = true;
+                var genericParams = type.GetGenericArguments();
+                foreach (var param in genericParams)
+                {
+                    var paramInfo = new GenericParameterInfo(param, t => GetTypeInfo(t));
+                    modelTypeInfo.GenericParameters.Add(paramInfo);
+                }
+            }
+            else if (type.IsGenericType)
+            {
+                modelTypeInfo.IsConstructedGenericType = true;
+                var genericArgs = type.GetGenericArguments();
+
+                foreach (var arg in genericArgs)
+                {
+                    var argTypeInfo = new Models.TypeInfo.TypeInfo(arg.GetTypeInfo())
+                    {
+                        Name = arg.Name,
+                        FullName = arg.FullName,
+                        Namespace = arg.Namespace,
+                        Assembly = arg.Assembly?.FullName,
+                        AssemblyQualifiedName = arg.AssemblyQualifiedName
+                    };
+                    modelTypeInfo.GenericTypeArguments.Add(argTypeInfo);
+                }
+
+                var genericTypeDef = type.GetGenericTypeDefinition();
+                modelTypeInfo.GenericTypeDefinition = genericTypeDef.Name;
+            }
+        }
+
 
         private void GetTypeEvents(ObjInfo.ObjInfo objInfo, Type type, SystemEventInfo[] eventInfos)
         {
@@ -86,71 +209,40 @@ namespace ObjectInfo.Brokers.ObjectInfo
             return eventInfo;
         }
 
-
-
         private void GetTypeGenericInfo(ObjInfo.ObjInfo objInfo, Type type)
         {
-            if (type.IsGenericTypeDefinition)
-            {
-                objInfo.TypeInfo.IsGenericTypeDefinition = true;
-                var genericParams = type.GetGenericArguments();
-                foreach (var param in genericParams)
-                {
-                    var paramInfo = new GenericParameterInfo(param, t => GetTypeInfo(t));
-                    objInfo.TypeInfo.GenericParameters.Add(paramInfo);
-                }
-            }
-            else if (type.IsGenericType)
-            {
-                objInfo.TypeInfo.IsConstructedGenericType = true;
-                var genericArgs = type.GetGenericArguments();
-                foreach (var arg in genericArgs)
-                {
-                    if (!objInfo.Configuration.ShowSystemInfo && arg.Namespace?.StartsWith("System") == true)
-                        continue;
-
-                    objInfo.TypeInfo.GenericTypeArguments.Add(GetTypeInfo(arg));
-                }
-
-                var genericTypeDef = type.GetGenericTypeDefinition();
-                objInfo.TypeInfo.GenericTypeDefinition = genericTypeDef.Name;
-            }
+            // This method can now be empty since we handle generic info in GetTypeInfo
+            // Or you can remove this method entirely and remove its call from GetObjectInfo
         }
 
-        private ITypeInfo GetTypeInfo(object obj)
-        {
-            if (obj is Type type)
-            {
-                return new Models.TypeInfo.TypeInfo(type);
-            }
+        //private void GetTypeGenericInfo(ObjInfo.ObjInfo objInfo, Type type)
+        //{
+        //    if (type.IsGenericTypeDefinition)
+        //    {
+        //        objInfo.TypeInfo.IsGenericTypeDefinition = true;
+        //        var genericParams = type.GetGenericArguments();
+        //        foreach (var param in genericParams)
+        //        {
+        //            var paramInfo = new GenericParameterInfo(param, t => GetTypeInfo(t));
+        //            objInfo.TypeInfo.GenericParameters.Add(paramInfo);
+        //        }
+        //    }
+        //    else if (type.IsGenericType)
+        //    {
+        //        objInfo.TypeInfo.IsConstructedGenericType = true;
+        //        var genericArgs = type.GetGenericArguments();
+        //        foreach (var arg in genericArgs)
+        //        {
+        //            if (!objInfo.Configuration.ShowSystemInfo && arg.Namespace?.StartsWith("System") == true)
+        //                continue;
 
-            System.Reflection.TypeInfo typeInfo = obj.GetType().GetTypeInfo();
-            //return new Models.TypeInfo.TypeInfo(typeInfo);
+        //            objInfo.TypeInfo.GenericTypeArguments.Add(GetTypeInfo(arg));
+        //        }
 
-            //--------------
-
-            //System.Reflection.TypeInfo typeInfo = obj.GetType().GetTypeInfo();
-            Models.TypeInfo.TypeInfo modeltypeInfo = new Models.TypeInfo.TypeInfo(typeInfo);
-            modeltypeInfo.PropInfos = new List<IPropInfo>();
-            modeltypeInfo.MethodInfos = new List<IMethodInfo>();
-            modeltypeInfo.ImplementedInterfaces = new List<ITypeInfo>();
-            modeltypeInfo.CustomAttrs = new List<ITypeInfo>();
-            modeltypeInfo.ConstructorInfos = new List<IConstructorInfo>();
-            modeltypeInfo.FieldInfos = new List<IFieldInfo>();
-            modeltypeInfo.Namespace = typeInfo.Namespace;
-            modeltypeInfo.Name = typeInfo.Name;
-            modeltypeInfo.Assembly = typeInfo.Assembly != null ? typeInfo.Assembly.FullName : null;
-            modeltypeInfo.AssemblyQualifiedName = typeInfo.AssemblyQualifiedName;
-            modeltypeInfo.FullName = typeInfo.FullName;
-            modeltypeInfo.BaseType = typeInfo.BaseType != null ? typeInfo.BaseType.Name : null;
-            modeltypeInfo.Module = typeInfo.Module.Name;
-            modeltypeInfo.GUID = typeInfo.GUID;
-            modeltypeInfo.UnderlyingSystemType = typeInfo.UnderlyingSystemType != null ? typeInfo.UnderlyingSystemType.Name : null;
-            modeltypeInfo.IsAbstract = obj.GetType().IsAbstract;
-
-            return modeltypeInfo;
-
-        }
+        //        var genericTypeDef = type.GetGenericTypeDefinition();
+        //        objInfo.TypeInfo.GenericTypeDefinition = genericTypeDef.Name;
+        //    }
+        //}
 
 
         private void GetTypeFields(object obj, ObjInfo.ObjInfo objInfo, SystemFieldInfo[] fieldInfos)
@@ -173,8 +265,20 @@ namespace ObjectInfo.Brokers.ObjectInfo
 
         public IFieldInfo GetFieldInfo(ObjInfo.ObjInfo objInfo, object obj, SystemFieldInfo _fieldInfo)
         {
-            var fieldInfo = new FieldInfoModel(_fieldInfo, obj);
+            var fieldInfo = new FieldInfoModel(_fieldInfo, obj is Type ? null : obj);
             fieldInfo.CustomAttrs = new List<ITypeInfo>();
+
+            try
+            {
+                if (obj != null && !(obj is Type))
+                {
+                    fieldInfo.Value = _fieldInfo.GetValue(obj);
+                }
+            }
+            catch
+            {
+                // Log but continue
+            }
 
             // Get custom attributes
             var attrs = _fieldInfo.GetCustomAttributes(false);
@@ -190,7 +294,6 @@ namespace ObjectInfo.Brokers.ObjectInfo
 
             return fieldInfo;
         }
-
 
         private void GetTypeConstructors(ObjInfo.ObjInfo objInfo, Type type, System.Reflection.ConstructorInfo[] constructorInfos)
         {
@@ -226,26 +329,38 @@ namespace ObjectInfo.Brokers.ObjectInfo
 
         private void GetTypeMethods(ObjInfo.ObjInfo objInfo, Type type, System.Reflection.MethodInfo[] methodInfos)
         {
+            if (objInfo?.TypeInfo?.MethodInfos == null)
+                return;
+
             foreach (var methodInfo in methodInfos)
             {
-                if(objInfo.Configuration.ShowSystemInfo == false)
+                try
                 {
-                    if (methodInfo.DeclaringType.Name != type.Name)
+                    if (methodInfo == null)
                         continue;
 
-                    if (methodInfo.Name.StartsWith("get_") || methodInfo.Name.StartsWith("set_"))
-                        continue;
+                    // Skip if we're not showing system info and this is not from the target type
+                    if (objInfo.Configuration.ShowSystemInfo == false)
+                    {
+                        if (methodInfo.DeclaringType?.Name != type.Name)
+                            continue;
+
+                        // Skip property accessors
+                        if (methodInfo.Name.StartsWith("get_") || methodInfo.Name.StartsWith("set_"))
+                            continue;
+                    }
+
+                    var info = GetMethodInfo(methodInfo);
+                    if (info != null)
+                    {
+                        objInfo.TypeInfo.MethodInfos.Add(info);
+                    }
                 }
-
-                objInfo.TypeInfo.MethodInfos.Add(GetMethodInfo(methodInfo));
-            }
-        }
-
-        private void GetTypeProps(object obj, ObjInfo.ObjInfo objInfo, PropertyInfo[] propInfos)
-        {
-            foreach (var prop in propInfos)
-            {
-                objInfo.TypeInfo.PropInfos.Add(GetPropInfo(objInfo, obj, prop));
+                catch
+                {
+                    // Continue with next method if there's an error
+                    continue;
+                }
             }
         }
 
@@ -267,29 +382,6 @@ namespace ObjectInfo.Brokers.ObjectInfo
             return modeltypeInfo;
         }
 
-        //private ITypeInfo GetTypeInfo(object obj)
-        //{
-        //    System.Reflection.TypeInfo typeInfo = obj.GetType().GetTypeInfo();
-        //    Models.TypeInfo.TypeInfo modeltypeInfo = new Models.TypeInfo.TypeInfo(typeInfo);
-        //    modeltypeInfo.PropInfos = new List<IPropInfo>();
-        //    modeltypeInfo.MethodInfos = new List<IMethodInfo>();
-        //    modeltypeInfo.ImplementedInterfaces = new List<ITypeInfo>();
-        //    modeltypeInfo.CustomAttrs = new List<ITypeInfo>();
-        //    modeltypeInfo.ConstructorInfos = new List<IConstructorInfo>();
-        //    modeltypeInfo.FieldInfos = new List<IFieldInfo>();
-        //    modeltypeInfo.Namespace = typeInfo.Namespace;
-        //    modeltypeInfo.Name = typeInfo.Name;
-        //    modeltypeInfo.Assembly = typeInfo.Assembly != null ? typeInfo.Assembly.FullName : null;
-        //    modeltypeInfo.AssemblyQualifiedName = typeInfo.AssemblyQualifiedName;
-        //    modeltypeInfo.FullName = typeInfo.FullName;
-        //    modeltypeInfo.BaseType = typeInfo.BaseType != null ? typeInfo.BaseType.Name : null;
-        //    modeltypeInfo.Module = typeInfo.Module.Name;
-        //    modeltypeInfo.GUID = typeInfo.GUID;
-        //    modeltypeInfo.UnderlyingSystemType = typeInfo.UnderlyingSystemType != null ? typeInfo.UnderlyingSystemType.Name : null;
-        //    modeltypeInfo.IsAbstract = obj.GetType().IsAbstract;
-
-        //    return modeltypeInfo;
-        //}
 
         public IPropInfo GetPropInfo(ObjInfo.ObjInfo objInfo, object obj, PropertyInfo _propInfo)
         {
@@ -359,41 +451,60 @@ namespace ObjectInfo.Brokers.ObjectInfo
 
         public IMethodInfo GetMethodInfo(System.Reflection.MethodInfo _methodInfo)
         {
-            Models.MethodInfo.MethodInfo methodInfo = new Models.MethodInfo.MethodInfo(_methodInfo)
+            if (_methodInfo == null)
+                return null;
+
+            try
             {
-                Name = _methodInfo.Name,
-                ReflectedType = _methodInfo.ReflectedType?.Name,
-                DeclaringType = _methodInfo.DeclaringType?.Name,
-                CustomAttrs = new List<ITypeInfo>(),
-                IsVirtual = _methodInfo.IsVirtual
-            };
-
-            MemberInfo[] myMembers = _methodInfo.DeclaringType.GetMembers();
-
-            for (int i = 0; i < myMembers.Length; i++)
-            {
-                if (myMembers[i].DeclaringType != _methodInfo.DeclaringType ||
-                    myMembers[i].DeclaringType.AssemblyQualifiedName != _methodInfo.DeclaringType.AssemblyQualifiedName)
-                    continue;
-
-                object[] attrs = myMembers[i].GetCustomAttributes(false);
-
-                if (attrs.Length > 0)
+                var methodInfo = new Models.MethodInfo.MethodInfo(_methodInfo)
                 {
-                    for (int j = 0; j < attrs.Length; j++)
+                    Name = _methodInfo.Name,
+                    ReflectedType = _methodInfo.ReflectedType?.Name,
+                    DeclaringType = _methodInfo.DeclaringType?.Name,
+                    CustomAttrs = new List<ITypeInfo>(),
+                    IsVirtual = _methodInfo.IsVirtual
+                };
+
+                if (_methodInfo.DeclaringType != null)
+                {
+                    var myMembers = _methodInfo.DeclaringType.GetMembers();
+
+                    foreach (var member in myMembers)
                     {
-                        Attribute attr = attrs[j] as Attribute;
-                        if (attr.GetType().Namespace.StartsWith("System"))
-                            continue;
-                        if (!methodInfo.CustomAttrs.Any(a => a.Name.Equals(GetTypeInfo(attr).Name)))
+                        try
                         {
-                            methodInfo.CustomAttrs.Add(GetTypeInfo(attr));
+                            if (member.DeclaringType != _methodInfo.DeclaringType ||
+                                member.DeclaringType.AssemblyQualifiedName != _methodInfo.DeclaringType.AssemblyQualifiedName)
+                                continue;
+
+                            var attrs = member.GetCustomAttributes(false);
+                            foreach (var attr in attrs)
+                            {
+                                if (attr is Attribute attribute &&
+                                    !attribute.GetType().Namespace.StartsWith("System") &&
+                                    !methodInfo.CustomAttrs.Any(a => a.Name.Equals(GetTypeInfo(attribute).Name)))
+                                {
+                                    methodInfo.CustomAttrs.Add(GetTypeInfo(attribute));
+                                }
+                            }
+                        }
+                        catch
+                        {
+                            // Continue with next member if there's an error
+                            continue;
                         }
                     }
                 }
+
+                return methodInfo;
             }
-            return methodInfo;
+            catch
+            {
+                return null;
+            }
         }
+
+
     }
 
 }
