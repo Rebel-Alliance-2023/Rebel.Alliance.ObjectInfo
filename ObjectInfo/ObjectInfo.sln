@@ -42,11 +42,15 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ObjectInfo.Overlord", "Obje
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Rebel.Alliance.ObjectInfo.Overlord", "Rebel.Alliance.ObjectInfo.Overlord\Rebel.Alliance.ObjectInfo.Overlord.csproj", "{F0E2361F-615C-4582-9EF3-0F85DF98175F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rebel.Alliance.ObjectInfo.Overlord.Tests", "Rebel.Alliance.ObjectInfo.Overlord.Tests\Rebel.Alliance.ObjectInfo.Overlord.Tests.csproj", "{C23DDF32-4D4E-4EFA-BEA0-C927122C210A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Rebel.Alliance.ObjectInfo.Overlord.Tests", "Rebel.Alliance.ObjectInfo.Overlord.Tests\Rebel.Alliance.ObjectInfo.Overlord.Tests.csproj", "{C23DDF32-4D4E-4EFA-BEA0-C927122C210A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Overlord.Test.Library", "Overlord.Test.Library\Overlord.Test.Library.csproj", "{42BB6D73-0C91-4902-9ABE-F785FA5A56D8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Overlord.Test.Library", "Overlord.Test.Library\Overlord.Test.Library.csproj", "{42BB6D73-0C91-4902-9ABE-F785FA5A56D8}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Testing", "Testing", "{1873F69B-28B6-4795-80DF-4BF7D9BBA95A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ObjectInfo.Deepdive.SpecificationGenerator", "ObjectInfo.Deepdive.SpecificationGenerator\ObjectInfo.Deepdive.SpecificationGenerator.csproj", "{0AAB605B-0C24-4A0B-BD44-59C8E531D93C}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SpecificationGenerator", "SpecificationGenerator", "{4A234AC5-7FF9-4374-AA38-4669BBD63E27}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -102,6 +106,10 @@ Global
 		{42BB6D73-0C91-4902-9ABE-F785FA5A56D8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{42BB6D73-0C91-4902-9ABE-F785FA5A56D8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{42BB6D73-0C91-4902-9ABE-F785FA5A56D8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0AAB605B-0C24-4A0B-BD44-59C8E531D93C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0AAB605B-0C24-4A0B-BD44-59C8E531D93C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0AAB605B-0C24-4A0B-BD44-59C8E531D93C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0AAB605B-0C24-4A0B-BD44-59C8E531D93C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -123,6 +131,8 @@ Global
 		{C23DDF32-4D4E-4EFA-BEA0-C927122C210A} = {1873F69B-28B6-4795-80DF-4BF7D9BBA95A}
 		{42BB6D73-0C91-4902-9ABE-F785FA5A56D8} = {1873F69B-28B6-4795-80DF-4BF7D9BBA95A}
 		{1873F69B-28B6-4795-80DF-4BF7D9BBA95A} = {6257933B-3B7F-4E4D-AA93-BC9F65665747}
+		{0AAB605B-0C24-4A0B-BD44-59C8E531D93C} = {4A234AC5-7FF9-4374-AA38-4669BBD63E27}
+		{4A234AC5-7FF9-4374-AA38-4669BBD63E27} = {0935EFC3-922F-4EDB-A0A8-E2D724F34D9D}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {6AEDE20E-109D-4079-BEEF-1A79F73B7350}
