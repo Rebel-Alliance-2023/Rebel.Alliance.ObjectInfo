@@ -1,0 +1,80 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<LangVersion>latest</LangVersion>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+
+		<!-- Source Generator Settings -->
+		<EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
+		<IsRoslynComponent>true</IsRoslynComponent>
+		<IncludeBuildOutput>false</IncludeBuildOutput>
+		<DevelopmentDependency>true</DevelopmentDependency>
+
+		<!-- Package Metadata -->
+		<PackageId>ObjectInfo.Deepdive.SpecificationGenerator.Core</PackageId>
+		<Version>1.0.0</Version>
+		<Authors>The Rebel Alliance</Authors>
+		<Company>The Rebel Alliance</Company>
+		<Product>ObjectInfo.Deepdive</Product>
+		<Description>
+			Source generator component of ObjectInfo.Deepdive.SpecificationGenerator.
+			Generates specification pattern implementations for Entity Framework Core and Dapper.
+		</Description>
+		<PackageTags>source-generator;specification-pattern;code-generation;ef-core;dapper</PackageTags>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+		<PackageProjectUrl>https://github.com/Rebel-Alliance-2023/ObjectInfo.Deepdive</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/Rebel-Alliance-2023/ObjectInfo.Deepdive</RepositoryUrl>
+
+		<!-- Source Link -->
+		<PublishRepositoryUrl>true</PublishRepositoryUrl>
+		<EmbedUntrackedSources>true</EmbedUntrackedSources>
+		<IncludeSymbols>true</IncludeSymbols>
+		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+		<DefineConstants>DEBUG;TRACE</DefineConstants>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+	</PropertyGroup>
+
+	<!-- Package Dependencies -->
+	<ItemGroup>
+		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.11.0" PrivateAssets="all" />
+		<PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.11.0" PrivateAssets="all" />
+		<PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" />
+	</ItemGroup>
+
+	<!-- Project References -->
+	<ItemGroup>
+		<ProjectReference Include="..\ObjectInfo.Deepdive.SpecificationGenerator.Attributes\ObjectInfo.Deepdive.SpecificationGenerator.Attributes.csproj" 
+						  PrivateAssets="all" />
+	</ItemGroup>
+
+	<!-- Analyzer Packaging -->
+	<ItemGroup>
+		<None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" 
+			  PackagePath="analyzers/dotnet/cs" Visible="false" />
+		<None Include="$(OutputPath)\ObjectInfo.Deepdive.SpecificationGenerator.Attributes.dll" 
+			  Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+	</ItemGroup>
+
+	<!-- Development Dependencies -->
+	<ItemGroup>
+		<PackageDefinitionFile Include="$(OutputPath)\$(AssemblyName).dll">
+			<PackagePath>analyzers/dotnet/cs</PackagePath>
+			<BuildAction>None</BuildAction>
+		</PackageDefinitionFile>
+	</ItemGroup>
+
+	<!-- Documentation -->
+	<ItemGroup>
+		<None Include="../../README.md" Pack="true" PackagePath="/" />
+	</ItemGroup>
+
+</Project>

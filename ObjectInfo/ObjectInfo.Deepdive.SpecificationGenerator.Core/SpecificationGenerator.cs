@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using ObjectInfo.Deepdive.SpecificationGenerator.Attributes;
+using ObjectInfo.Deepdive.SpecificationGenerator.Core.Emitters;
 using ObjectInfo.Deepdive.SpecificationGenerator.Core.Models;
 
 namespace ObjectInfo.Deepdive.SpecificationGenerator.Core
@@ -274,28 +275,6 @@ namespace ObjectInfo.Deepdive.SpecificationGenerator.Core
     internal interface ISpecificationEmitter
     {
         string EmitSpecification(SpecificationTarget target);
-    }
-
-    internal class EfCoreSpecificationEmitter : BaseSpecificationEmitter
-    {
-        public EfCoreSpecificationEmitter(SourceProductionContext context) : base(context) { }
-
-        public override string EmitSpecification(SpecificationTarget target)
-        {
-            // Implementation will be added in the next step
-            throw new NotImplementedException();
-        }
-    }
-
-    internal class DapperSpecificationEmitter : BaseSpecificationEmitter
-    {
-        public DapperSpecificationEmitter(SourceProductionContext context) : base(context) { }
-
-        public override string EmitSpecification(SpecificationTarget target)
-        {
-            // Implementation will be added in the next step
-            throw new NotImplementedException();
-        }
     }
 
     internal abstract class BaseSpecificationEmitter : ISpecificationEmitter
