@@ -10,9 +10,9 @@ using ObjectInfo.Deepdive.SpecificationGenerator.Core.Models;
 
 namespace ObjectInfo.Deepdive.SpecificationGenerator.Core.Emitters
 {
-    internal class DapperSpecificationEmitter : BaseSpecificationEmitter
+    public class DapperSpecificationEmitter : BaseSpecificationEmitter
     {
-        public DapperSpecificationEmitter(SourceProductionContext context) : base(context) { }
+        public DapperSpecificationEmitter(ISourceProductionContext context) : base(context) { }
 
         public override string EmitSpecification(SpecificationTarget target)
         {

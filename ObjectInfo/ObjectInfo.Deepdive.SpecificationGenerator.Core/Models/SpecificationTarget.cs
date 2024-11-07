@@ -2,7 +2,7 @@
 
 namespace ObjectInfo.Deepdive.SpecificationGenerator.Core.Models
 {
-    internal record SpecificationTarget(
+    public record SpecificationTarget(
         INamedTypeSymbol ClassSymbol,
         SpecificationConfiguration Configuration,
         List<PropertyDetails> Properties,

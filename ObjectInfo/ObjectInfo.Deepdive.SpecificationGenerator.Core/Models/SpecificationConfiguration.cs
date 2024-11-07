@@ -3,7 +3,7 @@ using ObjectInfo.Deepdive.SpecificationGenerator.Attributes;
 
 namespace ObjectInfo.Deepdive.SpecificationGenerator.Core.Models
 {
-    internal record SpecificationConfiguration
+    public record SpecificationConfiguration
     {
         public OrmTarget TargetOrm { get; init; }
         public bool GenerateNavigationSpecs { get; init; }

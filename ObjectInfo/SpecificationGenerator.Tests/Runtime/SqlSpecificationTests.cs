@@ -226,8 +226,8 @@ namespace ObjectInfo.Deepdive.SpecificationGenerator.Runtime
             }
 
             protected override void BuildWhereClause()
-            {
-                _whereClauseBuilder?.Invoke(this as TestSqlSpecification<TEntity>);
+            {                
+                _whereClauseBuilder?.Invoke(this as SqlSpecification<TEntity>.TestSqlSpecification<TEntity>);
             }
 
             // Expose protected methods for testing

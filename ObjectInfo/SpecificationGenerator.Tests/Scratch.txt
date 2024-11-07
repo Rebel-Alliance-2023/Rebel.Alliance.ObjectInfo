@@ -1,0 +1,77 @@
+﻿ObjectInfo.Deepdive.SpecificationGenerator.Tests/
+├── Attributes/
+│   ├── GenerateSpecificationAttributeTests.cs
+│   └── SpecificationPropertyAttributeTests.cs
+├── Core/
+│   ├── SpecificationGeneratorTests.cs
+│   ├── PropertyAnalysisTests.cs
+│   └── NavigationPropertyTests.cs
+├── Emitters/
+│   ├── EfCoreSpecificationEmitterTests.cs
+│   └── DapperSpecificationEmitterTests.cs
+├── Runtime/
+│   ├── BaseSpecificationTests.cs
+│   ├── SqlSpecificationTests.cs
+│   ├── AdvancedSpecificationTests.cs
+│   └── CompositeSpecificationTests.cs
+├── Caching/
+│   ├── SpecificationCacheTests.cs
+│   ├── CompiledQueryCacheTests.cs
+│   └── CacheKeyGeneratorTests.cs
+├── Integration/
+│   ├── EfCoreIntegrationTests.cs
+│   └── DapperIntegrationTests.cs 
+├── Performance/
+│   ├── GeneratorPerformanceTests.cs
+│   └── RuntimePerformanceTests.cs
+├── ErrorHandling/
+│   ├── ValidationTests.cs
+│   └── ErrorRecoveryTests.cs
+└── TestInfrastructure/
+    ├── TestEntities/
+    │   ├── TestEntity.cs
+    │   ├── ComplexEntity.cs
+    │   └── NestedEntity.cs
+    ├── TestFixtures/
+    │   ├── DatabaseFixture.cs
+    │   └── CompilationFixture.cs
+    └── Helpers/
+        ├── TestDataGenerator.cs
+        └── AssertionHelpers.cs
+
+__________________
+
+ObjectInfo.Deepdive.SpecificationGenerator/
+├── src/
+│   └── ... (existing source projects)
+├── tests/
+│   ├── ObjectInfo.Deepdive.SpecificationGenerator.Tests/
+│   │   └── ... (existing unit tests)
+│   │
+│   ├── ObjectInfo.Deepdive.SpecificationGenerator.Tests.EfCore/
+│   │   ├── EfCoreIntegrationTests.csproj
+│   │   ├── Infrastructure/
+│   │   │   ├── TestDbContext.cs
+│   │   │   ├── TestFixtures/
+│   │   │   └── Configurations/
+│   │   ├── Models/
+│   │   │   └── TestEntities.cs
+│   │   └── Tests/
+│   │       ├── QueryGenerationTests.cs
+│   │       ├── FilteringTests.cs
+│   │       ├── IncludeTests.cs
+│   │       └── PagingTests.cs
+│   │
+│   └── ObjectInfo.Deepdive.SpecificationGenerator.Tests.Dapper/
+│       ├── DapperIntegrationTests.csproj
+│       ├── Infrastructure/
+│       │   ├── TestDatabase.cs
+│       │   ├── TestFixtures/
+│       │   └── Scripts/
+│       ├── Models/
+│       │   └── TestEntities.cs
+│       └── Tests/
+│           ├── QueryGenerationTests.cs
+│           ├── FilteringTests.cs
+│           ├── PerformanceTests.cs
+│           └── BatchOperationTests.cs

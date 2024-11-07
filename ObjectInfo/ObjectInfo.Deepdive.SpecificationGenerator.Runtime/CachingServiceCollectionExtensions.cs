@@ -63,7 +63,7 @@ namespace ObjectInfo.Deepdive.SpecificationGenerator.Runtime.Caching
         }
     }
 
-    internal class DefaultCacheStatistics : ICacheStatistics
+    public class DefaultCacheStatistics : ICacheStatistics
     {
         private long _hits;
         private long _distributedHits;

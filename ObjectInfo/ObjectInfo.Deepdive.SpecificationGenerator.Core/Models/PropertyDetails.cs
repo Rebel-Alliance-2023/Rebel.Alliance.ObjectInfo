@@ -2,7 +2,7 @@
 
 namespace ObjectInfo.Deepdive.SpecificationGenerator.Core.Models
 {
-    internal record PropertyDetails(
+    public record PropertyDetails(
         IPropertySymbol Symbol,
         PropertyConfiguration Configuration
     );

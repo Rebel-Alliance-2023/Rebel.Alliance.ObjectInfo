@@ -1,6 +1,6 @@
 ﻿namespace ObjectInfo.Deepdive.SpecificationGenerator.Core.Models
 {
-    internal record PropertyConfiguration
+    public record PropertyConfiguration
     {
         public bool GenerateContains { get; init; }
         public bool GenerateStartsWith { get; init; }

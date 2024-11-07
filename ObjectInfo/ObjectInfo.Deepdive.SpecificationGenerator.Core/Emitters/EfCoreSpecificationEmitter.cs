@@ -7,9 +7,9 @@ using ObjectInfo.Deepdive.SpecificationGenerator.Core.Models;
 
 namespace ObjectInfo.Deepdive.SpecificationGenerator.Core.Emitters
 {
-    internal class EfCoreSpecificationEmitter : BaseSpecificationEmitter
+    public class EfCoreSpecificationEmitter : BaseSpecificationEmitter
     {
-        public EfCoreSpecificationEmitter(SourceProductionContext context) : base(context) { }
+        public EfCoreSpecificationEmitter(ISourceProductionContext context) : base(context) { }
 
         public override string EmitSpecification(SpecificationTarget target)
         {

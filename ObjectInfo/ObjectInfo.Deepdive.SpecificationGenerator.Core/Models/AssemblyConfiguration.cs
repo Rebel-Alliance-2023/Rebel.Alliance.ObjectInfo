@@ -1,6 +1,6 @@
 ﻿namespace ObjectInfo.Deepdive.SpecificationGenerator.Core.Models
 {
-    internal record AssemblyConfiguration
+    public record AssemblyConfiguration
     {
         public string DefaultNamespace { get; init; } = "Specifications";
         public bool DefaultGenerateAsync { get; init; }

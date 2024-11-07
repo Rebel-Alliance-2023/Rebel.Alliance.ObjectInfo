@@ -25,7 +25,8 @@ namespace ObjectInfo.Deepdive.SpecificationGenerator.Core
                 .Where(target => target is not null);
 
             context.RegisterSourceOutput(syntaxProvider,
-                (productionContext, target) => GenerateSource(productionContext, target!));
+                (productionContext, target) => GenerateSource(new SourceProductionContextAdapter(productionContext), target!));
+
         }
 
         private static SpecificationTarget? GetSpecificationTarget(GeneratorAttributeSyntaxContext context)
@@ -147,15 +148,15 @@ namespace ObjectInfo.Deepdive.SpecificationGenerator.Core
             };
         }
 
-        private static void GenerateSource(SourceProductionContext context, SpecificationTarget target)
+        private static void GenerateSource(ISourceProductionContext context, SpecificationTarget target)
         {
             try
             {
                 var emitters = new Dictionary<OrmTarget, ISpecificationEmitter>
-                {
-                    { OrmTarget.EntityFrameworkCore, new EfCoreSpecificationEmitter(context) },
-                    { OrmTarget.Dapper, new DapperSpecificationEmitter(context) }
-                };
+        {
+            { OrmTarget.EntityFrameworkCore, new EfCoreSpecificationEmitter(context) },
+            { OrmTarget.Dapper, new DapperSpecificationEmitter(context) }
+        };
 
                 if (target.Configuration.TargetOrm == OrmTarget.Both)
                 {
@@ -182,8 +183,9 @@ namespace ObjectInfo.Deepdive.SpecificationGenerator.Core
             }
         }
 
+
         private static void GenerateSpecification(
-            SourceProductionContext context,
+            ISourceProductionContext context,
             SpecificationTarget target,
             ISpecificationEmitter emitter,
             string? suffix = null)
@@ -192,11 +194,13 @@ namespace ObjectInfo.Deepdive.SpecificationGenerator.Core
             var sourceText = emitter.EmitSpecification(target);
             var fileName = $"{className}.g.cs";
 
-            context.AddSource(fileName, SourceText.From(sourceText, Encoding.UTF8));
+            context.AddSource(fileName, sourceText);
+            //context.AddSource(fileName, SourceText.From(sourceText, Encoding.UTF8));
         }
+        
 
         private static void GenerateNestedSpecification(
-            SourceProductionContext context,
+            ISourceProductionContext context,
             SpecificationTarget target,
             NavigationPropertyDetails navProp,
             Dictionary<OrmTarget, ISpecificationEmitter> emitters)
@@ -277,33 +281,5 @@ namespace ObjectInfo.Deepdive.SpecificationGenerator.Core
         string EmitSpecification(SpecificationTarget target);
     }
 
-    internal abstract class BaseSpecificationEmitter : ISpecificationEmitter
-    {
-        protected readonly SourceProductionContext Context;
 
-        protected BaseSpecificationEmitter(SourceProductionContext context)
-        {
-            Context = context;
-        }
-
-        public abstract string EmitSpecification(SpecificationTarget target);
-
-        protected virtual void ReportDiagnostic(DiagnosticDescriptor descriptor, Location? location = null, params object?[] args)
-        {
-            Context.ReportDiagnostic(Diagnostic.Create(descriptor, location ?? Location.None, args));
-        }
-
-        protected static string GetAccessibilityKeyword(ISymbol symbol)
-        {
-            return symbol.DeclaredAccessibility switch
-            {
-                Accessibility.Public => "public",
-                Accessibility.Protected => "protected",
-                Accessibility.Private => "private",
-                Accessibility.Internal => "internal",
-                Accessibility.ProtectedAndInternal => "protected internal",
-                _ => "public"
-            };
-        }
-    }
 }
