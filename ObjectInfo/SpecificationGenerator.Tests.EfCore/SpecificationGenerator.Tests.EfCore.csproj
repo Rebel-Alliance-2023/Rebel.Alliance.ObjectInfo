@@ -33,8 +33,6 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="..\ObjectInfo.Deepdive.SpecificationGenerator.Attributes\ObjectInfo.Deepdive.SpecificationGenerator.Attributes.csproj" />
-	  <ProjectReference Include="..\ObjectInfo.Deepdive.SpecificationGenerator.Core\ObjectInfo.Deepdive.SpecificationGenerator.Core.csproj" />
 	  <ProjectReference Include="..\ObjectInfo.Deepdive.SpecificationGenerator.Runtime\ObjectInfo.Deepdive.SpecificationGenerator.Runtime.csproj" />
 	</ItemGroup>
 
