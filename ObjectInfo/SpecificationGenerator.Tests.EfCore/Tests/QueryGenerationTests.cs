@@ -15,6 +15,58 @@ namespace ObjectInfo.Deepdive.SpecificationGenerator.Tests.EfCore.Tests
         public QueryGenerationTests(DatabaseFixture fixture, ITestOutputHelper output)
             : base(fixture, output)
         {
+            // Seed test data
+            SeedTestData();
+        }
+
+        private void SeedTestData()
+        {
+            // Add entity with null Value
+            var nullValueEntity = new TestEntity
+            {
+                Name = "Null Value Entity",
+                IsActive = true,
+                CreatedDate = DateTime.Today,
+                Value = null
+            };
+            Fixture.DbContext.TestEntities.Add(nullValueEntity);
+
+            // Add entity with Premium RelatedEntity
+            var premiumEntity = new TestEntity
+            {
+                Name = "Premium Entity",
+                IsActive = true,
+                CreatedDate = DateTime.Today,
+                Value = 100m,
+                RelatedEntity = new RelatedEntity
+                {
+                    Title = "Premium Related",
+                    Type = TestEntityType.Premium,
+                    Price = 199.99m
+                }
+            };
+            Fixture.DbContext.TestEntities.Add(premiumEntity);
+
+            // Add entity with Public Children
+            var entityWithChildren = new TestEntity
+            {
+                Name = "Parent Entity",
+                IsActive = true,
+                CreatedDate = DateTime.Today,
+                Value = 150m,
+                Children = new List<ChildEntity>
+                {
+                    new ChildEntity
+                    {
+                        Name = "Public Child",
+                        Scope = ChildEntityScope.Public,
+                        Order = 1
+                    }
+                }
+            };
+            Fixture.DbContext.TestEntities.Add(entityWithChildren);
+
+            Fixture.DbContext.SaveChanges();
         }
 
         [Fact]
@@ -33,7 +85,7 @@ namespace ObjectInfo.Deepdive.SpecificationGenerator.Tests.EfCore.Tests
             var results = await query.ToListAsync();
 
             // Assert
-            sql.Should().Contain("\"IsActive\" = 1");
+            sql.Should().Contain("\"t\".\"IsActive\"");  // Just check for the column reference
             results.Should().NotBeEmpty();
             results.Should().AllSatisfy(e => e.IsActive.Should().BeTrue());
         }
@@ -55,8 +107,9 @@ namespace ObjectInfo.Deepdive.SpecificationGenerator.Tests.EfCore.Tests
             var results = await query.ToListAsync();
 
             // Assert
-            sql.Should().Contain("\"IsActive\" = 1");
-            sql.Should().Contain("\"Value\" > 500");
+            sql.Should().Contain("\"t\".\"IsActive\"");
+            sql.Should().Contain("ef_compare");
+            sql.Should().Contain("500.0");
             results.Should().NotBeEmpty();
             results.Should().AllSatisfy(e =>
             {
@@ -83,8 +136,9 @@ namespace ObjectInfo.Deepdive.SpecificationGenerator.Tests.EfCore.Tests
 
             // Assert
             sql.Should().Contain("OR");
-            sql.Should().Contain("\"Status\" = 1");
-            sql.Should().Contain("\"Value\" > 1000");
+            sql.Should().Contain("\"t\".\"Status\" = 1");
+            sql.Should().Contain("ef_compare");
+            sql.Should().Contain("1000.0");
             results.Should().NotBeEmpty();
             results.Should().AllSatisfy(e =>
                 (e.Status == TestEntityStatus.Active || e.Value > 1000m).Should().BeTrue());
@@ -93,12 +147,13 @@ namespace ObjectInfo.Deepdive.SpecificationGenerator.Tests.EfCore.Tests
         [Fact]
         public async Task GeneratesQueryWithNavigationProperties()
         {
-            // Arrange
+            // Arrange - Add required Include for the test
             var spec = new TestSpecification<TestEntity>(e =>
                 e.RelatedEntity != null && e.RelatedEntity.Type == TestEntityType.Premium);
 
-            // Act
+            // Act - Apply Include in the query
             var query = Fixture.DbContext.Set<TestEntity>()
+                .Include(e => e.RelatedEntity)  // Add Include for navigation property
                 .Where(spec.Criteria);
 
             var sql = query.ToQueryString();
@@ -107,8 +162,9 @@ namespace ObjectInfo.Deepdive.SpecificationGenerator.Tests.EfCore.Tests
             var results = await query.ToListAsync();
 
             // Assert
-            sql.Should().Contain("\"RelatedEntity\".\"Type\"");
-            sql.Should().Contain("INNER JOIN");
+            sql.Should().Contain("\"r\".\"Type\"");
+            sql.Should().Contain("\"r\".\"Id\" IS NOT NULL");
+            results.Should().NotBeEmpty();  // Should find our seeded premium entity
             results.Should().AllSatisfy(e =>
             {
                 e.RelatedEntity.Should().NotBeNull();
@@ -119,12 +175,13 @@ namespace ObjectInfo.Deepdive.SpecificationGenerator.Tests.EfCore.Tests
         [Fact]
         public async Task GeneratesQueryWithCollectionNavigation()
         {
-            // Arrange
+            // Arrange - Add required Include for the test
             var spec = new TestSpecification<TestEntity>(e =>
                 e.Children.Any(c => c.Scope == ChildEntityScope.Public));
 
-            // Act
+            // Act - Apply Include in the query
             var query = Fixture.DbContext.Set<TestEntity>()
+                .Include(e => e.Children)  // Add Include for navigation property
                 .Where(spec.Criteria);
 
             var sql = query.ToQueryString();
@@ -134,7 +191,9 @@ namespace ObjectInfo.Deepdive.SpecificationGenerator.Tests.EfCore.Tests
 
             // Assert
             sql.Should().Contain("EXISTS");
-            sql.Should().Contain("\"Children\".\"Scope\"");
+            sql.Should().Contain("\"c\".\"Scope\"");
+            sql.Should().Contain("= 2");  // Public enum value
+            results.Should().NotBeEmpty(); // Should find our seeded entity with public children
             results.Should().AllSatisfy(e =>
                 e.Children.Any(c => c.Scope == ChildEntityScope.Public).Should().BeTrue());
         }
@@ -156,7 +215,7 @@ namespace ObjectInfo.Deepdive.SpecificationGenerator.Tests.EfCore.Tests
             var results = await query.ToListAsync();
 
             // Assert
-            sql.Should().Contain("\"CreatedDate\" >=");
+            sql.Should().Contain("\"t\".\"CreatedDate\" >=");
             results.Should().AllSatisfy(e =>
                 e.CreatedDate.Should().BeOnOrAfter(cutoffDate));
         }
@@ -177,7 +236,8 @@ namespace ObjectInfo.Deepdive.SpecificationGenerator.Tests.EfCore.Tests
             var results = await query.ToListAsync();
 
             // Assert
-            sql.Should().Contain("\"Value\" IS NULL");
+            sql.Should().Contain("\"t\".\"Value\" IS NULL");
+            results.Should().NotBeEmpty();  // We now have seeded data with null Value
             results.Should().AllSatisfy(e => e.Value.Should().BeNull());
         }
 

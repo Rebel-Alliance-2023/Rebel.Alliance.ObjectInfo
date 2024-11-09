@@ -23,6 +23,7 @@ namespace ObjectInfo.Deepdive.SpecificationGenerator.Tests.EfCore.Models
         public decimal Price { get; set; }
         public virtual TestEntity TestEntity { get; set; } = null!;
         public int TestEntityId { get; set; }
+        public ICollection<ChildEntity> Children { get; set; } = new List<ChildEntity>();
     }
 
     public class ChildEntity
@@ -39,12 +40,14 @@ namespace ObjectInfo.Deepdive.SpecificationGenerator.Tests.EfCore.Models
     {
         Draft,
         Active,
-        Archived
+        Archived,
+        Inactive
     }
 
     public enum TestEntityType
     {
         Basic,
+        Standard,
         Advanced,
         Premium
     }

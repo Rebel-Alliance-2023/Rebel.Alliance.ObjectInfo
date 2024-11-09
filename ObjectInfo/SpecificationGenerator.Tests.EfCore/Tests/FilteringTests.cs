@@ -15,12 +15,78 @@ namespace ObjectInfo.Deepdive.SpecificationGenerator.Tests.EfCore.Tests
         public FilteringTests(DatabaseFixture fixture, ITestOutputHelper output)
             : base(fixture, output)
         {
+            //SeedTestData();
         }
+        private void SeedTestData()
+        {
+            // Clear existing data first
+            if (Fixture.DbContext.TestEntities.Any())
+            {
+                Fixture.DbContext.TestEntities.RemoveRange(Fixture.DbContext.TestEntities);
+                Fixture.DbContext.SaveChanges();
+            }
+
+            var entities = new List<TestEntity>
+            {
+                new TestEntity
+                {
+                    Name = "Test Entity 1",
+                    IsActive = true,
+                    Status = TestEntityStatus.Active, // Ensure status is Active
+                    RelatedEntity = new RelatedEntity
+                    {
+                        Title = "Related Entity 1",
+                        Type = TestEntityType.Premium,
+                        Price = 150m // Ensure price is greater than 100m
+                    },
+                    Children = new List<ChildEntity>
+                    {
+                        new ChildEntity { Name = "Child 1", Scope = ChildEntityScope.Public },
+                        new ChildEntity { Name = "Child 2", Scope = ChildEntityScope.Private },
+                        new ChildEntity { Name = "Child 3", Scope = ChildEntityScope.Public } // Ensure more than 2 children
+                    }
+                },
+                new TestEntity
+                {
+                    Name = "Test Entity 2",
+                    IsActive = true,
+                    Status = TestEntityStatus.Inactive, // Status is Inactive
+                    RelatedEntity = new RelatedEntity
+                    {
+                        Title = "Related Entity 2",
+                        Type = TestEntityType.Standard,
+                        Price = 50m // Price less than 100m
+                    },
+                    Children = new List<ChildEntity>
+                    {
+                        new ChildEntity { Name = "Child 4", Scope = ChildEntityScope.Public },
+                        new ChildEntity { Name = "Child 5", Scope = ChildEntityScope.Private }
+                    }
+                },
+                new TestEntity
+                {
+                    Name = "Test Entity 3",
+                    IsActive = true,
+                    Status = TestEntityStatus.Inactive, // Status is Inactive
+                    RelatedEntity = null, // This entity has a null RelatedEntity
+                    Children = new List<ChildEntity>
+                    {
+                        new ChildEntity { Name = "Child 6", Scope = ChildEntityScope.Public },
+                        new ChildEntity { Name = "Child 7", Scope = ChildEntityScope.Private }
+                    }
+                }
+            };
+
+            Fixture.DbContext.TestEntities.AddRange(entities);
+            Fixture.DbContext.SaveChanges();
+        }
+
 
         [Fact]
         public async Task FiltersByEqualityCondition()
         {
             // Arrange
+            SeedTestData();
             var spec = new TestSpecification<TestEntity>(e => e.Status == TestEntityStatus.Active);
 
             // Act
@@ -116,6 +182,7 @@ namespace ObjectInfo.Deepdive.SpecificationGenerator.Tests.EfCore.Tests
         public async Task FiltersByRelatedEntityProperties()
         {
             // Arrange
+            SeedTestData();
             var spec = new TestSpecification<TestEntity>(e =>
                 e.RelatedEntity != null &&
                 e.RelatedEntity.Price > 100m &&
@@ -141,6 +208,7 @@ namespace ObjectInfo.Deepdive.SpecificationGenerator.Tests.EfCore.Tests
         public async Task FiltersByChildCollectionProperties()
         {
             // Arrange
+            SeedTestData();
             var spec = new TestSpecification<TestEntity>(e =>
                 e.Children.Any(c => c.Scope == ChildEntityScope.Public) &&
                 e.Children.Count > 2);
