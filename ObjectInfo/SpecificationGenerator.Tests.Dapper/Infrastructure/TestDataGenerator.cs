@@ -33,7 +33,7 @@ namespace ObjectInfo.Deepdive.SpecificationGenerator.Tests.Dapper.Infrastructure
         {
             var customerFaker = new Faker<Customer>()
                 .RuleFor(c => c.Name, f => f.Company.CompanyName())
-                .RuleFor(c => c.Email, f => f.Internet.Email())
+                .RuleFor(c => c.Email, f => f.Random.Bool(0.8f) ? f.Internet.Email() : null) // 20% null emails
                 .RuleFor(c => c.IsActive, f => f.Random.Bool(0.9f))
                 .RuleFor(c => c.CreatedDate, f => f.Date.Past(3))
                 .RuleFor(c => c.ModifiedDate, (f, c) => f.Date.Between(c.CreatedDate, DateTime.Now))
@@ -41,32 +41,47 @@ namespace ObjectInfo.Deepdive.SpecificationGenerator.Tests.Dapper.Infrastructure
                 .RuleFor(c => c.CreditLimit, f => Math.Round(f.Random.Decimal(1000, 50000), 2))
                 .RuleFor(c => c.Notes, f => f.Random.Bool(0.7f) ? f.Lorem.Paragraph() : null)
                 .RuleFor(c => c.PreferredContact, f => f.PickRandom<ContactMethod>())
-                .RuleFor(c => c.MetaDataJson, f => JsonSerializer.Serialize(new
+                // Ensure some test-specific data
+                .FinishWith((f, c) =>
                 {
-                    LastContact = f.Date.Recent(),
-                    Tags = f.Make(2, () => f.Commerce.Department()),
-                    Rating = f.Random.Int(1, 5)
-                }));
+                    if (f.Random.Int(1, 10) <= 2) // 20% special cases
+                    {
+                        c.Name = $"Test_{c.Name}"; // For string operation tests
+                        c.Email = "@example.com"; // For string operation tests
+                        c.CustomerType = CustomerType.Premium; // For specific type tests
+                        c.CreditLimit = 15000m; // For range tests
+                    }
+                });
 
             return customerFaker.Generate(count);
         }
 
-        public static IEnumerable<Order> GenerateOrders(IEnumerable<Customer> customers, int ordersPerCustomer = 5)
+        public static IEnumerable<Order> GenerateOrders(IEnumerable<Customer> customers, int maxOrdersPerCustomer = 5)
         {
-            var customerIds = customers.Select(c => c.Id).ToList();
             var orderFaker = new Faker<Order>()
                 .RuleFor(o => o.OrderNumber, f => f.Random.Replace("ORD-####-####"))
-                .RuleFor(o => o.CustomerId, f => f.PickRandom(customerIds))
+                .RuleFor(o => o.CustomerId, f => f.PickRandom(customers).Id)
                 .RuleFor(o => o.Status, f => f.PickRandom<OrderStatus>())
                 .RuleFor(o => o.OrderDate, f => f.Date.Past(1))
                 .RuleFor(o => o.ShippedDate, (f, o) => o.Status >= OrderStatus.Shipped ? f.Date.Between(o.OrderDate, DateTime.Now) : null)
                 .RuleFor(o => o.ShippingAddress, f => f.Address.FullAddress())
-                .RuleFor(o => o.IsPriority, f => f.Random.Bool(0.2f));
+                .RuleFor(o => o.IsPriority, f => f.Random.Bool(0.2f))
+                .RuleFor(o => o.TotalAmount, f => Math.Round(f.Random.Decimal(100, 10000), 2))
+                // Ensure some test-specific data
+                .FinishWith((f, o) =>
+                {
+                    if (f.Random.Int(1, 10) <= 2) // 20% special cases
+                    {
+                        o.TotalAmount = 1500m; // For amount tests
+                        o.Status = OrderStatus.Delivered; // For status tests
+                    }
+                });
 
             var orders = new List<Order>();
             foreach (var customer in customers)
             {
-                orders.AddRange(orderFaker.Generate(ordersPerCustomer));
+                var orderCount = _faker.Random.Int(1, maxOrdersPerCustomer);
+                orders.AddRange(orderFaker.Generate(orderCount));
             }
 
             return orders;

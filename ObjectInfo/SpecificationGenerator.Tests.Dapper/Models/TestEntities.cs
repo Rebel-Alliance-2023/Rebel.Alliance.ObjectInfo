@@ -123,7 +123,6 @@ namespace ObjectInfo.Deepdive.SpecificationGenerator.Tests.Dapper.Models
         [MaxLength(1000)]
         public string? Description { get; set; }
 
-        [Column("CategoryId")]
         public ProductCategory Category { get; set; }
 
         public int StockLevel { get; set; }
@@ -131,13 +130,13 @@ namespace ObjectInfo.Deepdive.SpecificationGenerator.Tests.Dapper.Models
         [Column(TypeName = "decimal(5,2)")]
         public decimal? Weight { get; set; }
 
-        [Column("Tags", TypeName = "nvarchar(max)")]
         public string? TagsJson { get; set; }
 
         public DateTime CreatedDate { get; set; }
 
         public DateTime? LastRestockDate { get; set; }
     }
+
 
     [Table("Audits")]
     public class AuditLog

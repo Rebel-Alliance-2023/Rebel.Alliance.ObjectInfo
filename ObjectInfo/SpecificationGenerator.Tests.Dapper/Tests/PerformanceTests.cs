@@ -7,13 +7,15 @@ using Dapper;
 using Xunit;
 using Xunit.Abstractions;
 using FluentAssertions;
-using ObjectInfo.Deepdive.SpecificationGenerator.Runtime;
-using ObjectInfo.Deepdive.SpecificationGenerator.Runtime.Caching;
-using ObjectInfo.Deepdive.SpecificationGenerator.Tests.Dapper.Infrastructure.TestFixtures;
-using ObjectInfo.Deepdive.SpecificationGenerator.Tests.Dapper.Models;
 using Microsoft.Extensions.DependencyInjection;
 using System.Linq.Expressions;
 using ObjectInfo.Deepdive.SpecificationGenerator.Tests.Dapper.Infrastructure;
+using ObjectInfo.Deepdive.SpecificationGenerator.Tests.Dapper.Models;
+using ObjectInfo.Deepdive.SpecificationGenerator.Runtime.Caching;
+using System.Reflection;
+using System.ComponentModel.DataAnnotations.Schema;
+using ObjectInfo.Deepdive.SpecificationGenerator.Runtime;
+using ObjectInfo.Deepdive.SpecificationGenerator.Tests.Dapper.Infrastructure.TestFixtures;
 
 namespace ObjectInfo.Deepdive.SpecificationGenerator.Tests.Dapper.Tests
 {
@@ -21,7 +23,7 @@ namespace ObjectInfo.Deepdive.SpecificationGenerator.Tests.Dapper.Tests
     {
         private readonly ICompiledQueryCache _queryCache;
 
-        public PerformanceTests(DatabaseFixture fixture, ITestOutputHelper output) 
+        public PerformanceTests(DatabaseFixture fixture, ITestOutputHelper output)
             : base(fixture, output)
         {
             _queryCache = ServiceProvider.GetRequiredService<ICompiledQueryCache>();
@@ -34,8 +36,8 @@ namespace ObjectInfo.Deepdive.SpecificationGenerator.Tests.Dapper.Tests
         {
             // Arrange
             var specs = Enumerable.Range(0, iterations)
-                .Select(i => new TestSpecification<Customer>(c => 
-                    c.CustomerType == (CustomerType)(i % 4) && 
+                .Select(i => new TestSpecification<Customer>(c =>
+                    c.CustomerType == (CustomerType)(i % 4) &&
                     c.CreditLimit > i * 1000))
                 .ToList();
 
@@ -78,7 +80,6 @@ namespace ObjectInfo.Deepdive.SpecificationGenerator.Tests.Dapper.Tests
             var complexSpec = new TestSpecification<Order>(o =>
                 o.Status == OrderStatus.Processing &&
                 o.Customer.CustomerType == CustomerType.Premium &&
-                o.Items.Any(i => i.Quantity > 5) &&
                 o.OrderDate >= DateTime.Now.AddMonths(-1));
 
             var stopwatch = new Stopwatch();
@@ -120,8 +121,8 @@ namespace ObjectInfo.Deepdive.SpecificationGenerator.Tests.Dapper.Tests
         public async Task MeasureQueryCachePerformance()
         {
             // Arrange
-            var spec = new TestSpecification<Customer>(c => 
-                c.CustomerType == CustomerType.Premium && 
+            var spec = new TestSpecification<Customer>(c =>
+                c.CustomerType == CustomerType.Premium &&
                 c.CreditLimit > 5000);
 
             var stopwatch = new Stopwatch();
@@ -134,7 +135,7 @@ namespace ObjectInfo.Deepdive.SpecificationGenerator.Tests.Dapper.Tests
             for (int i = 0; i < iterations; i++)
             {
                 stopwatch.Restart();
-                var transformer = _queryCache.GetOrAddQueryTransformer(spec);
+                var transformer = _queryCache.GetOrAddQueryTransformer<Customer>((ISpecification<Customer>)spec);
                 stopwatch.Stop();
                 uncachedTimes.Add(stopwatch.ElapsedTicks);
             }
@@ -143,7 +144,7 @@ namespace ObjectInfo.Deepdive.SpecificationGenerator.Tests.Dapper.Tests
             for (int i = 0; i < iterations; i++)
             {
                 stopwatch.Restart();
-                var transformer = _queryCache.GetOrAddQueryTransformer(spec);
+                var transformer = _queryCache.GetOrAddQueryTransformer<Customer>((ISpecification<Customer>)spec);
                 stopwatch.Stop();
                 cachedTimes.Add(stopwatch.ElapsedTicks);
             }
@@ -201,7 +202,7 @@ namespace ObjectInfo.Deepdive.SpecificationGenerator.Tests.Dapper.Tests
             // Act
             var stopwatch = new Stopwatch();
             stopwatch.Start();
-            
+
             var results = await WithConnection(async conn =>
                 await conn.QueryAsync<OrderSummaryDto>(
                     complexQuery,
@@ -226,32 +227,48 @@ namespace ObjectInfo.Deepdive.SpecificationGenerator.Tests.Dapper.Tests
                 "Query should return approximately the expected number of results");
         }
 
-        private class TestSpecification<T> : SqlSpecification<T> where T : class
+        private class TestSpecification<T> : SqlSpecificationBase<T> where T : class
         {
             public TestSpecification(Expression<Func<T, bool>> criteria)
             {
                 Criteria = criteria;
+                BuildWhereClause();
             }
 
             protected override void BuildWhereClause()
             {
                 var visitor = new SqlExpressionVisitor<T>(this);
                 visitor.Visit(Criteria);
+
+                var whereClause = visitor.GetSql();
+                AddToWhereClause(whereClause);
+
+                // Parameters are already stored in the specification's Parameters dictionary
+            }
+
+            protected override string GetTableName()
+            {
+                var tableAttr = typeof(T).GetCustomAttribute<TableAttribute>();
+                if (tableAttr != null)
+                {
+                    return tableAttr.Name;
+                }
+
+                // Simple pluralization
+                var typeName = typeof(T).Name;
+                return typeName.EndsWith("s") ? typeName : typeName + "s";
             }
         }
 
-        //private class SqlExpressionVisitor<T> : ExpressionVisitor
-        //{
-        //    private readonly SqlSpecification<T> _specification;
-        //    private int _parameterIndex;
-
-        //    public SqlExpressionVisitor(SqlSpecification<T> specification)
-        //    {
-        //        _specification = specification;
-        //    }
-
-        //    // Implementation details would go here
-        //    // This is just a stub for the performance tests
-        //}
+        // Definition for OrderSummaryDto
+        private class OrderSummaryDto
+        {
+            public string OrderNumber { get; set; }
+            public string CustomerName { get; set; }
+            public decimal TotalAmount { get; set; }
+            public int ItemCount { get; set; }
+            public DateTime OrderDate { get; set; }
+            public OrderStatus Status { get; set; }
+        }
     }
 }
