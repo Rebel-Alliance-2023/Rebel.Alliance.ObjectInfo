@@ -7,6 +7,7 @@
 		<!-- Enable implicit usings and nullable reference types -->
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
+		<NoWarn>CS1591</NoWarn>
 
 		<!-- Language version -->
 		<LangVersion>latest</LangVersion>
