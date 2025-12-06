@@ -1,0 +1,78 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<LangVersion>latest</LangVersion>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+
+		<!-- Package Metadata -->
+		<PackageId>ObjectInfo.Deepdive.SpecificationGenerator.Dapper</PackageId>
+		<Version>1.0.0</Version>
+		<Authors>The Rebel Alliance</Authors>
+		<Company>The Rebel Alliance</Company>
+		<Product>ObjectInfo.Deepdive</Product>
+		<Description>
+			Dapper integration support for ObjectInfo.Deepdive.SpecificationGenerator.
+			Provides SQL generation, connection management, and Dapper-specific implementations
+			of the specification pattern. Supports both synchronous and asynchronous operations.
+		</Description>
+		<PackageTags>specification-pattern;dapper;sql;orm;query-builder</PackageTags>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+		<PackageProjectUrl>https://github.com/Rebel-Alliance-2023/ObjectInfo.Deepdive</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/Rebel-Alliance-2023/ObjectInfo.Deepdive</RepositoryUrl>
+
+		<!-- Source Link -->
+		<PublishRepositoryUrl>true</PublishRepositoryUrl>
+		<EmbedUntrackedSources>true</EmbedUntrackedSources>
+		<IncludeSymbols>true</IncludeSymbols>
+		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+		<DefineConstants>DEBUG;TRACE</DefineConstants>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+	</PropertyGroup>
+
+
+
+	<!-- Package Dependencies -->
+	<ItemGroup>
+		<PackageReference Include="Dapper" Version="2.1.35" />
+		<PackageReference Include="Microsoft.Data.SqlClient" Version="5.2.2" />
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.2" />
+		<PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="8.0.0" />
+		<PackageReference Include="Microsoft.Extensions.Options" Version="8.0.2" />
+		<PackageReference Include="System.ComponentModel.Annotations" Version="5.0.0" />
+
+		<!-- Source Link -->
+		<PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" />
+	</ItemGroup>
+
+	<!-- Global Usings -->
+	<ItemGroup>
+		<Using Include="System" />
+		<Using Include="System.Collections.Generic" />
+		<Using Include="System.Data" />
+		<Using Include="System.Linq" />
+		<Using Include="System.Linq.Expressions" />
+		<Using Include="System.Threading" />
+		<Using Include="System.Threading.Tasks" />
+		<Using Include="Dapper" />
+		<Using Include="Microsoft.Data.SqlClient" />
+		<Using Include="Microsoft.Extensions.DependencyInjection" />
+		<Using Include="Microsoft.Extensions.Options" />
+	</ItemGroup>
+
+	<!-- Documentation -->
+	<ItemGroup>
+		<None Include="../../README.md" Pack="true" PackagePath="/" />
+	</ItemGroup>
+
+
+
+</Project>
