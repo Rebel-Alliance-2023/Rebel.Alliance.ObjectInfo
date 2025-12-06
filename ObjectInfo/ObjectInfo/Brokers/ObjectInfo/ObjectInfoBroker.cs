@@ -23,11 +23,16 @@ using EventInfoModel = ObjectInfo.Models.EventInfo.EventInfo;
 using SystemConstructorInfo = System.Reflection.ConstructorInfo;
 using SystemFieldInfo = System.Reflection.FieldInfo;
 using SystemEventInfo = System.Reflection.EventInfo;
+using System.Collections.Concurrent;
+using System.Linq.Expressions;
 
 namespace ObjectInfo.Brokers.ObjectInfo
 {
     public class ObjectInfoBroker : IObjectInfoBroker
     {
+        // Cache of compiled open-instance getters per property for faster value access
+        private static readonly ConcurrentDictionary<PropertyInfo, Func<object, object>> s_getterCache = new ConcurrentDictionary<PropertyInfo, Func<object, object>>();
+
         public IObjInfo GetObjectInfo(object obj, IConfigInfo configuration = null)
         {
             Type type = obj is Type t ? t : obj.GetType();
@@ -401,7 +406,16 @@ namespace ObjectInfo.Brokers.ObjectInfo
             {
                 try
                 {
-                    propInfo.Value = _propInfo.GetValue(obj);
+                    if (obj != null && !(obj is Type))
+                    {
+                        // Use a cached compiled getter delegate for performance-sensitive access
+                        var getter = s_getterCache.GetOrAdd(_propInfo, CreateOpenInstanceGetter);
+                        propInfo.Value = getter(obj);
+                    }
+                    else
+                    {
+                        propInfo.Value = null;
+                    }
                 }
                 catch (TargetInvocationException ex)
                 {
@@ -427,6 +441,24 @@ namespace ObjectInfo.Brokers.ObjectInfo
             }
 
             return propInfo;
+        }
+
+        // Builds an open-instance getter: (object target) => (object)((TDeclaring)target).Property
+        private static Func<object, object> CreateOpenInstanceGetter(PropertyInfo pi)
+        {
+            var getMethod = pi.GetGetMethod(nonPublic: true);
+            if (getMethod == null)
+            {
+                return _ => null;
+            }
+
+            var targetType = pi.DeclaringType ?? typeof(object);
+            var targetParam = Expression.Parameter(typeof(object), "target");
+            var castTarget = Expression.Convert(targetParam, targetType);
+            var propertyAccess = Expression.Property(castTarget, pi);
+            var box = Expression.Convert(propertyAccess, typeof(object));
+            var lambda = Expression.Lambda<Func<object, object>>(box, targetParam);
+            return lambda.Compile();
         }
 
         public IConstructorInfo GetConstructorInfo(ObjInfo.ObjInfo objInfo, System.Reflection.ConstructorInfo _constructorInfo)
