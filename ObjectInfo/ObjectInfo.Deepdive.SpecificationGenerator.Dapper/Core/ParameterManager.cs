@@ -17,7 +17,7 @@ namespace Rebel.Alliance.Specification.Dapper.Core
         public string CreateParameter(object value)
         {
             var paramName = $"@p{Interlocked.Increment(ref _parameterCount)}";
-            _parameters.TryAdd(paramName, value);
+            _parameters.TryAdd(paramName, Normalize(value));
             return paramName;
         }
 
@@ -35,6 +35,18 @@ namespace Rebel.Alliance.Specification.Dapper.Core
         {
             _parameters.Clear();
             _parameterCount = 0;
+        }
+
+        private static object Normalize(object value)
+        {
+            if (value == null) return DBNull.Value;
+            var t = value.GetType();
+            if (t.IsEnum)
+            {
+                var underlying = Enum.GetUnderlyingType(t);
+                return Convert.ChangeType(value, underlying, System.Globalization.CultureInfo.InvariantCulture);
+            }
+            return value;
         }
     }
 }
