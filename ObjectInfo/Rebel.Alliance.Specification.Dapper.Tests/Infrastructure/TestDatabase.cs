@@ -14,7 +14,6 @@ namespace ObjectInfo.Deepdive.SpecificationGenerator.Tests.Dapper.Infrastructure
 {
     public class TestDatabase : IDisposable
     {
-        private readonly string _dbPath;
         private readonly string _connectionString;
         private readonly ILogger _logger;
         private readonly object _lock = new();
@@ -25,8 +24,8 @@ namespace ObjectInfo.Deepdive.SpecificationGenerator.Tests.Dapper.Infrastructure
         public TestDatabase(ILogger logger)
         {
             _logger = logger;
-            _dbPath = Path.Combine(Path.GetTempPath(), $"SpecGeneratorTests_{Guid.NewGuid():N}.db");
-            _connectionString = $"Data Source={_dbPath};Mode=ReadWriteCreate;Cache=Shared";
+            // Use in-memory database with shared cache; keep a single open connection
+            _connectionString = "Data Source=:memory:;Cache=Shared";
             _initialized = false;
         }
 
@@ -53,7 +52,7 @@ namespace ObjectInfo.Deepdive.SpecificationGenerator.Tests.Dapper.Infrastructure
 
                 try
                 {
-                    _logger.Information("Initializing test database at {DbPath}", _dbPath);
+                    _logger.Information("Initializing in-memory test database");
 
                     var scriptPath = Path.Combine(AppContext.BaseDirectory, "Infrastructure", "Scripts", "schema-script.sql");
                     _logger.Information("Looking for migration script at: {Path}", scriptPath);
@@ -64,21 +63,19 @@ namespace ObjectInfo.Deepdive.SpecificationGenerator.Tests.Dapper.Infrastructure
                         throw new FileNotFoundException("Migration script not found", scriptPath);
                     }
 
-                    // Create and upgrade the database with a single script
-                    var upgrader = DeployChanges.To
-                        .SQLiteDatabase(_connectionString)
-                        .WithScript("SchemaScript", File.ReadAllText(scriptPath))
-                        .WithPreprocessor(new SQLitePreprocessor())
-                        .LogTo(new SerilogDbUpLogger(_logger))
-                        .Build();
+                    // Open the persistent connection and apply schema
+                    _connection = new SqliteConnection(_connectionString);
+                    _connection.Open();
 
-
-                    var result = upgrader.PerformUpgrade();
-
-                    if (!result.Successful)
+                    // Enable foreign keys
+                    using (var cmd = _connection.CreateCommand())
                     {
-                        throw new Exception("Database initialization failed", result.Error);
+                        cmd.CommandText = "PRAGMA foreign_keys = ON;";
+                        cmd.ExecuteNonQuery();
                     }
+
+                    string schemaSql = File.ReadAllText(scriptPath);
+                    _connection.Execute(schemaSql);
 
                     _logger.Information("Test database initialized successfully");
                     _initialized = true;
@@ -147,12 +144,6 @@ namespace ObjectInfo.Deepdive.SpecificationGenerator.Tests.Dapper.Infrastructure
                     try
                     {
                         _connection?.Dispose();
-
-                        if (File.Exists(_dbPath))
-                        {
-                            File.Delete(_dbPath);
-                            _logger.Information("Test database deleted: {DbPath}", _dbPath);
-                        }
                     }
                     catch (Exception ex)
                     {

@@ -68,9 +68,8 @@ namespace ObjectInfo.Deepdive.SpecificationGenerator.Tests.Dapper.Infrastructure
             {
                 _logger.Information("Initializing database fixture");
                 _db = new TestDatabase(_logger);
-                
-                // Verify database setup
-                using var connection = _db.GetConnection();
+                // Keep a single open connection for in-memory DB lifetime
+                var connection = _db.GetConnection();
                 var tableCount = await connection.ExecuteScalarAsync<int>(
                     "SELECT COUNT(*) FROM sqlite_master WHERE type='table'");
                 
@@ -100,7 +99,7 @@ namespace ObjectInfo.Deepdive.SpecificationGenerator.Tests.Dapper.Infrastructure
             
             try
             {
-                using var connection = Connection;
+                var connection = Connection;
                 using var transaction = connection.BeginTransaction();
 
                 // Delete all data from tables in correct order
@@ -114,9 +113,6 @@ namespace ObjectInfo.Deepdive.SpecificationGenerator.Tests.Dapper.Infrastructure
                 await connection.ExecuteAsync("DELETE FROM sqlite_sequence", transaction: transaction);
 
                 transaction.Commit();
-
-                // Re-seed the data
-                _db = new TestDatabase(_logger);
                 
                 _logger.Information("Database reset completed successfully");
             }
