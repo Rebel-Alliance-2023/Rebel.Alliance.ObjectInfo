@@ -136,7 +136,7 @@ namespace ObjectInfo.Deepdive.SpecificationGenerator.Tests.EfCore.Tests
         {
             // Arrange
             var spec = new TestSpecification<TestEntity>(e => e.IsActive)
-                .Include(e => e.RelatedEntity)
+                .Include(e => e.RelatedEntity!)
                 .Include(e => e.Children);
 
             // Act
@@ -216,7 +216,7 @@ namespace ObjectInfo.Deepdive.SpecificationGenerator.Tests.EfCore.Tests
             // Arrange
             var spec = new TestSpecification<TestEntity>(e =>
                 e.IsActive && e.RelatedEntity!.Type == TestEntityType.Premium)
-                .Include(e => e.RelatedEntity)
+                .Include(e => e.RelatedEntity!)
                 .Include(e => e.Children);
 
             // Act
@@ -249,7 +249,7 @@ namespace ObjectInfo.Deepdive.SpecificationGenerator.Tests.EfCore.Tests
         {
             // Arrange
             var spec = new TestSpecification<TestEntity>(e => e.RelatedEntity == null)
-                .Include(e => e.RelatedEntity);
+                .Include(e => e.RelatedEntity!);
 
             // Act
             var query = Fixture.DbContext.Set<TestEntity>()

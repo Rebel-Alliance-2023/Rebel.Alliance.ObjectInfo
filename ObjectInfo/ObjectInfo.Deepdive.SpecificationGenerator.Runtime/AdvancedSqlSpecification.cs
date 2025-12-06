@@ -76,7 +76,7 @@ namespace ObjectInfo.Deepdive.SpecificationGenerator.Runtime.AdvancedQuery.Base
                 cacheKey,
                 () => QueryAsync(cancellationToken),
                 cacheTime,
-                cancellationToken);
+                cancellationToken) ?? Enumerable.Empty<T>();
         }
 
         protected override void BuildWhereClause()
@@ -286,7 +286,7 @@ namespace ObjectInfo.Deepdive.SpecificationGenerator.Runtime.AdvancedQuery.Base
 
         private IDictionary<string, object> Parameters { get; } = new Dictionary<string, object>();
 
-        protected virtual string GetUniqueParameterName(string baseParameterName)
+        protected new virtual string GetUniqueParameterName(string baseParameterName)
         {
             return $"{baseParameterName}_{Parameters.Count + 1}";
         }

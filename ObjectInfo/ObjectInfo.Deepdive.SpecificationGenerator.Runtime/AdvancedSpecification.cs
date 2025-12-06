@@ -69,7 +69,7 @@ namespace ObjectInfo.Deepdive.SpecificationGenerator.Runtime.AdvancedQuery.Base
                 cacheKey,
                 () => QueryAsync(cancellationToken),
                 cacheTime,
-                cancellationToken);
+                cancellationToken) ?? Enumerable.Empty<T>();
         }
 
         protected virtual IQueryable<T> ApplySpecification(IQueryable<T> query)
@@ -216,7 +216,7 @@ namespace ObjectInfo.Deepdive.SpecificationGenerator.Runtime.AdvancedQuery.Base
                 throw new InvalidOperationException("Custom expression is null");
             }
 
-            return ApplySort(query, orderedQuery, (LambdaExpression)field.CustomExpression, field.Direction);
+            return ApplySort(query, orderedQuery, (LambdaExpression)field.CustomExpression, field.Direction)!;
         }
 
         protected virtual IOrderedQueryable<T>? ApplySort(
@@ -231,37 +231,37 @@ namespace ObjectInfo.Deepdive.SpecificationGenerator.Runtime.AdvancedQuery.Base
             if (orderedQuery == null)
             {
                 return direction == SortDirection.Ascending
-                    ? query.Provider.CreateQuery<T>(
+                    ? (IOrderedQueryable<T>)query.Provider.CreateQuery<T>(
                         Expression.Call(
                             typeof(Queryable),
                             "OrderBy",
                             new[] { typeof(T), sortExpression.ReturnType },
                             query.Expression,
-                            Expression.Quote(sortExpression))) as IOrderedQueryable<T>
-                    : query.Provider.CreateQuery<T>(
+                            Expression.Quote(sortExpression)))
+                    : (IOrderedQueryable<T>)query.Provider.CreateQuery<T>(
                         Expression.Call(
                             typeof(Queryable),
                             "OrderByDescending",
                             new[] { typeof(T), sortExpression.ReturnType },
                             query.Expression,
-                            Expression.Quote(sortExpression))) as IOrderedQueryable<T>;
+                            Expression.Quote(sortExpression)));
             }
 
             return direction == SortDirection.Ascending
-                ? orderedQuery.Provider.CreateQuery<T>(
+                ? (IOrderedQueryable<T>)orderedQuery.Provider.CreateQuery<T>(
                     Expression.Call(
                         typeof(Queryable),
                         "ThenBy",
                         new[] { typeof(T), sortExpression.ReturnType },
                         orderedQuery.Expression,
-                        Expression.Quote(sortExpression))) as IOrderedQueryable<T>
-                : orderedQuery.Provider.CreateQuery<T>(
+                        Expression.Quote(sortExpression)))
+                : (IOrderedQueryable<T>)orderedQuery.Provider.CreateQuery<T>(
                     Expression.Call(
                         typeof(Queryable),
                         "ThenByDescending",
                         new[] { typeof(T), sortExpression.ReturnType },
                         orderedQuery.Expression,
-                        Expression.Quote(sortExpression))) as IOrderedQueryable<T>;
+                        Expression.Quote(sortExpression)));
         }
 
         private Expression<Func<T, TKey>> ConvertToGenericExpression<TKey>(LambdaExpression expression)

@@ -12,7 +12,7 @@ namespace ObjectInfo.Unit.Tests
         public void DateTime_FormatForInput_Default_IsDate()
         {
             var dt = new DateTime(2024, 12, 25, 10, 30, 0);
-            var s = TypeTraits<DateTime>.FormatForInput(dt, kindOverride: null, CultureInfo.InvariantCulture);
+            var s = TypeTraits<DateTime>.FormatForInput(dt, kindOverride: null!, CultureInfo.InvariantCulture);
             Assert.Equal("2024-12-25", s);
         }
 
@@ -28,11 +28,11 @@ namespace ObjectInfo.Unit.Tests
         public void Numeric_FormatForInput_IsInvariant()
         {
             var dec = 1234.56m;
-            var sDec = TypeTraits<decimal>.FormatForInput(dec, null, CultureInfo.InvariantCulture);
+            var sDec = TypeTraits<decimal>.FormatForInput(dec, null!, CultureInfo.InvariantCulture);
             Assert.Equal("1234.56", sDec);
 
             var dbl = 1234.56;
-            var sDbl = TypeTraits<double>.FormatForInput(dbl, null, CultureInfo.InvariantCulture);
+            var sDbl = TypeTraits<double>.FormatForInput(dbl, null!, CultureInfo.InvariantCulture);
             Assert.Equal("1234.56", sDbl);
         }
 

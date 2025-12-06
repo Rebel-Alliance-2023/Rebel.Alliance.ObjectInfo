@@ -67,7 +67,7 @@ namespace ObjectInfo.DeepDive.CyclomaticComplexityAnalyzer
         {
             _logger.Information($"Getting method body for: {methodInfo.Name} in type: {methodInfo.DeclaringType}");
 
-            Type type = FindType(methodInfo.DeclaringType);
+            Type? type = FindType(methodInfo.DeclaringType);
             if (type == null)
             {
                 _logger.Error($"Failed to find type: {methodInfo.DeclaringType}");
@@ -88,10 +88,17 @@ namespace ObjectInfo.DeepDive.CyclomaticComplexityAnalyzer
                 throw new InvalidOperationException($"Unable to retrieve method body for {methodInfo.Name}");
             }
 
-            return BitConverter.ToString(methodBody.GetILAsByteArray());
+            var ilBytes = methodBody.GetILAsByteArray();
+            if (ilBytes == null)
+            {
+                _logger.Error($"Failed to get IL bytes for: {methodInfo.Name} in type: {type.FullName}");
+                throw new InvalidOperationException($"Unable to retrieve IL bytes for {methodInfo.Name}");
+            }
+
+            return BitConverter.ToString(ilBytes);
         }
 
-        private Type FindType(string typeName)
+        private Type? FindType(string typeName)
         {
             _logger.Information($"Searching for type: {typeName}");
 

@@ -155,7 +155,7 @@ namespace ObjectInfo.Deepdive.SpecificationGenerator.Tests.EfCore.Tests
         {
             // Arrange
             var spec = new TestSpecification<TestEntity>(e => true)
-                .Include(e => e.RelatedEntity)
+                .Include(e => e.RelatedEntity!)
                 .OrderBy(e => e.Id)
                 .ApplyPaging(0, 5);
 
@@ -305,7 +305,7 @@ namespace ObjectInfo.Deepdive.SpecificationGenerator.Tests.EfCore.Tests
                 throw new NotImplementedException();
             }
 
-            public TestSpecification<T> OrderBy(Expression<Func<T, object>> orderByExpression)
+            public new TestSpecification<T> OrderBy(Expression<Func<T, object>> orderByExpression)
             {
                 base.ApplyOrderBy(orderByExpression);
                 return this;
@@ -323,7 +323,7 @@ namespace ObjectInfo.Deepdive.SpecificationGenerator.Tests.EfCore.Tests
                 return this;
             }
 
-            public TestSpecification<T> ApplyPaging(int skip, int take)
+            public new TestSpecification<T> ApplyPaging(int skip, int take)
             {
                 base.Skip = skip;
                 base.Take = take;

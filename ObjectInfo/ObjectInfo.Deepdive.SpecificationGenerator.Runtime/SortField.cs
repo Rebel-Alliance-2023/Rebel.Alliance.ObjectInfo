@@ -43,6 +43,7 @@ namespace ObjectInfo.Deepdive.SpecificationGenerator.Runtime.AdvancedQuery.Model
         /// </summary>
         public SortField(Expression customExpression, SortDirection direction = SortDirection.Ascending, int order = 0)
         {
+            PropertyName = string.Empty;
             CustomExpression = customExpression;
             Direction = direction;
             Order = order;

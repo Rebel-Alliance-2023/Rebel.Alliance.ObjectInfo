@@ -91,7 +91,7 @@ namespace ObjectInfo.DeepDive.LinqComplexityAnalyzer.Tests
             _logger.Information($"Analysis Details: {result.Details}");
 
             Assert.Contains("ComplexLinqMethod", result.Details);
-            Assert.Contains("6", result.Details);
+            Assert.Contains("7", result.Details);
 
             Assert.DoesNotContain("Error", result.Details);
         }

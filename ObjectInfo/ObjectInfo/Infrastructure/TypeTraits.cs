@@ -1,3 +1,5 @@
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -78,7 +80,7 @@ namespace ObjectInfo.Infrastructure
         /// <summary>
         /// When <typeparamref name="T"/> is nullable, contains the underlying non-nullable type; otherwise <c>null</c>.
         /// </summary>
-        public static readonly Type NullableUnderlying = Nullable.GetUnderlyingType(Type);
+        public static readonly Type? NullableUnderlying = Nullable.GetUnderlyingType(Type);
 
         /// <summary>
         /// The non-nullable representation of <typeparamref name="T"/> (same as <see cref="Type"/> when not nullable).
@@ -105,7 +107,7 @@ namespace ObjectInfo.Infrastructure
         /// returns it as <see cref="object"/>. This avoids using <see cref="Activator.CreateInstance(Type, object[])"/>
         /// on hot paths when dealing with nullable values.
         /// </summary>
-        private static readonly Func<object, object> s_nullableBoxer = CreateNullableBoxer();
+        private static readonly Func<object, object>? s_nullableBoxer = CreateNullableBoxer();
 
         /// <summary>
         /// Cached enum options computed once per closed generic type when applicable.
@@ -144,7 +146,7 @@ namespace ObjectInfo.Infrastructure
             {
                 case ValueKind.DateTime:
                 {
-                    var dt = (DateTime)(object)value;
+                    var dt = (DateTime)(object)value!;
                     var isDateTimeLocal = kindOverride != null && string.Equals(kindOverride.ToString(), "DateTimeLocal", StringComparison.Ordinal);
                     return isDateTimeLocal
                         ? dt.ToString("yyyy-MM-ddTHH:mm", CultureInfo.InvariantCulture)
@@ -157,7 +159,7 @@ namespace ObjectInfo.Infrastructure
                 case ValueKind.Single:
                     return Convert.ToString(value, CultureInfo.InvariantCulture) ?? string.Empty;
                 default:
-                    return value != null ? value.ToString() : string.Empty;
+                    return value != null ? value.ToString() ?? string.Empty : string.Empty;
             }
         }
 
@@ -175,9 +177,9 @@ namespace ObjectInfo.Infrastructure
             switch (Kind)
             {
                 case ValueKind.Enum:
-                    return value != null ? value.ToString() : string.Empty; // enum name
+                    return value != null ? value.ToString() ?? string.Empty : string.Empty; // enum name
                 case ValueKind.DateTime:
-                    return ((DateTime)(object)value).ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+                    return ((DateTime)(object)value!).ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
                 case ValueKind.Int32:
                 case ValueKind.Int64:
                 case ValueKind.Decimal:
@@ -185,7 +187,7 @@ namespace ObjectInfo.Infrastructure
                 case ValueKind.Single:
                     return Convert.ToString(value, CultureInfo.InvariantCulture) ?? string.Empty;
                 default:
-                    return value != null ? value.ToString() : string.Empty;
+                    return value != null ? value.ToString() ?? string.Empty : string.Empty;
             }
         }
 
@@ -216,14 +218,14 @@ namespace ObjectInfo.Infrastructure
                         else if (bool.TryParse(sb, out var b2)) pb = b2;
                         break;
                 }
-                parsed = pb == null ? default(T) : (T)(object)pb.Value;
+                parsed = pb == null ? default! : (T)(object)pb.Value;
                 return true;
             }
 
             var s = eventValue != null ? eventValue.ToString() : null;
             if (string.IsNullOrWhiteSpace(s))
             {
-                parsed = default(T);
+                parsed = default!;
                 return true;
             }
 
@@ -241,7 +243,7 @@ namespace ObjectInfo.Infrastructure
                     }
                     catch
                     {
-                        parsed = default(T);
+                        parsed = default!;
                         return false;
                     }
                 }
@@ -257,7 +259,7 @@ namespace ObjectInfo.Infrastructure
                             var dt = new DateTime(year, month, day, 0, 0, 0, DateTimeKind.Local);
                             parsed = (T)(object)dt; return true;
                         }
-                        parsed = default(T); return true;
+                        parsed = default!; return true;
                     }
                     else if (s.Length == 16)
                     {
@@ -267,12 +269,12 @@ namespace ObjectInfo.Infrastructure
                             var dt = new DateTime(year, month, day, hour, minute, 0, DateTimeKind.Local);
                             parsed = (T)(object)dt; return true;
                         }
-                        parsed = default(T); return true;
+                        parsed = default!; return true;
                     }
                     // Fallback: attempt general parse
                     if (DateTime.TryParse(s, CultureInfo.InvariantCulture, DateTimeStyles.AssumeLocal, out var dt2))
                     { parsed = (T)(object)dt2; return true; }
-                    parsed = default(T); return true;
+                    parsed = default!; return true;
                 }
                 case ValueKind.Int32:
                     {
@@ -280,7 +282,7 @@ namespace ObjectInfo.Infrastructure
                         { parsed = (T)(object)i32; return true; }
                         if (int.TryParse(s, NumberStyles.Integer, CultureInfo.InvariantCulture, out i32))
                         { parsed = (T)(object)i32; return true; }
-                        parsed = default(T); return false;
+                        parsed = default!; return false;
                     }
                 case ValueKind.Int64:
                     {
@@ -288,7 +290,7 @@ namespace ObjectInfo.Infrastructure
                         { parsed = (T)(object)i64; return true; }
                         if (long.TryParse(s, NumberStyles.Integer, CultureInfo.InvariantCulture, out i64))
                         { parsed = (T)(object)i64; return true; }
-                        parsed = default(T); return false;
+                        parsed = default!; return false;
                     }
                 case ValueKind.Decimal:
                     {
@@ -296,7 +298,7 @@ namespace ObjectInfo.Infrastructure
                         { parsed = (T)(object)dec; return true; }
                         if (decimal.TryParse(s, NumberStyles.Number, CultureInfo.InvariantCulture, out dec))
                         { parsed = (T)(object)dec; return true; }
-                        parsed = default(T); return false;
+                        parsed = default!; return false;
                     }
                 case ValueKind.Double:
                     {
@@ -304,7 +306,7 @@ namespace ObjectInfo.Infrastructure
                         { parsed = (T)(object)dbl; return true; }
                         if (double.TryParse(s, NumberStyles.Float | NumberStyles.AllowThousands, CultureInfo.InvariantCulture, out dbl))
                         { parsed = (T)(object)dbl; return true; }
-                        parsed = default(T); return false;
+                        parsed = default!; return false;
                     }
                 case ValueKind.Single:
                     {
@@ -312,7 +314,7 @@ namespace ObjectInfo.Infrastructure
                         { parsed = (T)(object)fl; return true; }
                         if (float.TryParse(s, NumberStyles.Float | NumberStyles.AllowThousands, CultureInfo.InvariantCulture, out fl))
                         { parsed = (T)(object)fl; return true; }
-                        parsed = default(T); return false;
+                        parsed = default!; return false;
                     }
                 case ValueKind.String:
                     parsed = (T)(object)s; return true;
@@ -326,7 +328,7 @@ namespace ObjectInfo.Infrastructure
                     }
                     catch
                     {
-                        parsed = default(T);
+                        parsed = default!;
                         return false;
                     }
             }
@@ -346,11 +348,11 @@ namespace ObjectInfo.Infrastructure
         /// Creates a compiled delegate that wraps a non-nullable <see cref="object"/> into <c>Nullable&lt;NonNullableType&gt;</c>
         /// and returns it as <see cref="object"/>. Returns <c>null</c> when <typeparamref name="T"/> is not nullable.
         /// </summary>
-        private static Func<object, object> CreateNullableBoxer()
+        private static Func<object, object>? CreateNullableBoxer()
         {
             if (!IsNullable) return null;
             var inner = NonNullableType;
-            var ctor = typeof(Nullable<>).MakeGenericType(inner).GetConstructor(new[] { inner });
+            var ctor = typeof(Nullable<>).MakeGenericType(inner).GetConstructor(new[] { inner })!;
             var objParam = Expression.Parameter(typeof(object), "o");
             var newExpr = Expression.New(ctor, Expression.Convert(objParam, inner));
             var body = Expression.Convert(newExpr, typeof(object));
@@ -377,7 +379,7 @@ namespace ObjectInfo.Infrastructure
         /// Legacy helper retained for compatibility; prefer <see cref="s_nullableBoxer"/> for hot paths.
         /// </summary>
         private static object CreateNullable(Type innerType, object value)
-            => Activator.CreateInstance(typeof(Nullable<>).MakeGenericType(innerType), value);
+            => Activator.CreateInstance(typeof(Nullable<>).MakeGenericType(innerType), value)!;
 
         // Fast numeric parse helpers
         private static bool TryParseDateString(string s, out int year, out int month, out int day)

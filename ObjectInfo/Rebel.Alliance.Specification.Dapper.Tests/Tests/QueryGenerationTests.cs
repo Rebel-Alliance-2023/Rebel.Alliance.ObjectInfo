@@ -130,7 +130,7 @@ namespace ObjectInfo.Deepdive.SpecificationGenerator.Tests.Dapper.Tests
         {
             // Arrange
             TestSqlSpecification<Customer> spec = new TestSqlSpecification<Customer>(c =>
-                c.Name.StartsWith("Test") && c.Email.Contains("@example.com"), _logger);
+                c.Name!.StartsWith("Test") && c.Email!.Contains("@example.com"), _logger);
 
             // Act
             var sql = spec.ToSql();
@@ -147,8 +147,8 @@ namespace ObjectInfo.Deepdive.SpecificationGenerator.Tests.Dapper.Tests
 
             DynamicParameters parameters = spec.GetParameters();
             parameters = spec.GetParameters();
-            parameters.Get<string>("@p1").Should().Be("Test");
-            parameters.Get<string>("@p2").Should().Be("@example.com");
+            parameters.Get<string>("@p1")!.Should().Be("Test");
+            parameters.Get<string>("@p2")!.Should().Be("@example.com");
         }
 
         [Fact]

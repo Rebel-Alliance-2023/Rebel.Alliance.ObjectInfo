@@ -109,7 +109,7 @@ namespace ObjectInfo.Unit.Tests
 
         public class TestGenericClass<T>
         {
-            public T Value { get; set; }
+            public required T Value { get; set; }
         }
 
         public interface ITestConstraint { }
@@ -117,7 +117,7 @@ namespace ObjectInfo.Unit.Tests
 
         public class TestConstrainedGenericClass<T> where T : ITestConstraint, new()
         {
-            public T Value { get; set; }
+            public required T Value { get; set; }
         }
 
         public delegate void CustomEventHandler(object sender, TestEventArgs e);
@@ -125,8 +125,8 @@ namespace ObjectInfo.Unit.Tests
 
         public class TestClassWithEvents
         {
-            public event EventHandler SimpleEvent;
-            public event CustomEventHandler CustomEvent;
+            public event EventHandler SimpleEvent = null!;
+            public event CustomEventHandler CustomEvent = null!;
 
             protected virtual void OnSimpleEvent()
             {

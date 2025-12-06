@@ -36,8 +36,8 @@ namespace Overlord.Test.Library
     [Custom("This is a derived model class.")]
     public class DerivedModel : BaseModel, IMetadataScanned
     {
-        public string Name { get; set; }
-        public string Description { get; set; }
+        public required string Name { get; set; }
+        public required string Description { get; set; }
 
         [Custom("Override method for testing method metadata")]
         public override void DisplayInfo()
@@ -57,10 +57,12 @@ namespace Overlord.Test.Library
     public class AnotherModel : IMetadataScanned
     {
         private int _privateField;
+#pragma warning disable CS0414 // Field is assigned but never used - intentional for testing
         private readonly string _readOnlyField = "Read Only";
+#pragma warning restore CS0414
         public int PublicProperty { get; set; }
         public string ReadOnlyProperty { get; }
-        public string WriteOnlyProperty { private get; set; }
+        public string WriteOnlyProperty { private get; set; } = string.Empty;
 
         public AnotherModel(int initialValue)
         {
@@ -79,12 +81,12 @@ namespace Overlord.Test.Library
     [MetadataScan(Description = "Container class for testing nested type scanning")]
     public class ContainerModel : IMetadataScanned
     {
-        public string ContainerName { get; set; }
+        public required string ContainerName { get; set; }
 
         [MetadataScan(Description = "Nested class for testing nested type scanning")]
         public class NestedModel : IMetadataScanned
         {
-            public string NestedName { get; set; }
+            public required string NestedName { get; set; }
         }
     }
 
@@ -137,7 +139,7 @@ namespace Overlord.Test.Library
     [MetadataScan(Description = "Implementation of test interface")]
     public class TestInterfaceImplementation : ITestInterface
     {
-        public string TestProperty { get; set; }
+        public required string TestProperty { get; set; }
 
         [Custom("Interface method implementation")]
         public void TestMethod()
@@ -151,7 +153,9 @@ namespace Overlord.Test.Library
     public static class StaticTestModel
     {
         public static int StaticProperty { get; set; }
+#pragma warning disable CS0414 // Field is assigned but never used - intentional for testing
         private static string StaticField = "Static Field";
+#pragma warning restore CS0414
 
         public static void StaticMethod()
         {
@@ -164,7 +168,7 @@ namespace Overlord.Test.Library
     public abstract class AbstractTestModel : IMetadataScanned
     {
         public abstract string AbstractProperty { get; set; }
-        public virtual string VirtualProperty { get; set; }
+        public virtual string VirtualProperty { get; set; } = string.Empty;
 
         public abstract void AbstractMethod();
 
@@ -178,8 +182,8 @@ namespace Overlord.Test.Library
     [MetadataScan(Description = "Concrete implementation of abstract class")]
     public class ConcreteTestModel : AbstractTestModel
     {
-        public override string AbstractProperty { get; set; }
-        public override string VirtualProperty { get; set; }
+        public override string AbstractProperty { get; set; } = string.Empty;
+        public override string VirtualProperty { get; set; } = string.Empty;
 
         public override void AbstractMethod()
         {

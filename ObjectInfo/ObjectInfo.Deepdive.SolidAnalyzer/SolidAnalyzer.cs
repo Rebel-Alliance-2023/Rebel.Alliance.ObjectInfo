@@ -71,7 +71,7 @@ namespace ObjectInfo.Deepdive.SolidAnalyzer
                 Violations = new List<string>()
             };
 
-            if (publicMembers > _config.MaxMethodsPerClass)
+            if (publicMembers > _config!.MaxMethodsPerClass)
             {
                 analysis.Violations.Add($"Class has {publicMembers} public members, which exceeds the recommended maximum of {_config.MaxMethodsPerClass}.");
             }
@@ -108,6 +108,10 @@ namespace ObjectInfo.Deepdive.SolidAnalyzer
             var assembly = System.Reflection.Assembly.Load(typeInfo.Assembly);
             var types = assembly.GetTypes();
             var type = types.Where(a => a.Name.Contains(typeInfo.Name)).FirstOrDefault();
+            if (type == null)
+            {
+                return new LspAnalysis { Violations = new List<string> { "Could not load type for analysis" } };
+            }
             var methods = type.GetMethods();
 
             var analysis = new LspAnalysis
@@ -182,6 +186,15 @@ namespace ObjectInfo.Deepdive.SolidAnalyzer
             var assembly = System.Reflection.Assembly.Load(typeInfo.Assembly);
             var types = assembly.GetTypes();
             var type = types.Where(a => a.Name.Contains(typeInfo.Name)).FirstOrDefault();
+            if (type == null)
+            {
+                return new DipAnalysis
+                {
+                    DependencyCount = 0,
+                    AbstractDependencyCount = 0,
+                    Violations = new List<string> { "Could not load type for analysis" }
+                };
+            }
             //var methods = type.GetMethods();
 
             //Given a type, how to you get its contructors?

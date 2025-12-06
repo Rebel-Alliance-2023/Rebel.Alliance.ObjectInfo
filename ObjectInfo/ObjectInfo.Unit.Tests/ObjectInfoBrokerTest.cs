@@ -108,7 +108,7 @@ namespace ObjectInfo.Unit.Tests
         public void ShouldNavigateGenericTypeInfo()
         {
             // given            
-            TestGenericClass<string> testClass = new TestGenericClass<string>();
+            TestGenericClass<string> testClass = new TestGenericClass<string>() { Value = "Test" };
             IObjectInfoBroker objectInfoBroker = new ObjectInfoBroker();
             ObjInfo? objectInfo = ObjectInfoService.RetrieveObjectInfo(objectInfoBroker, testClass);
 
@@ -183,12 +183,12 @@ namespace ObjectInfo.Unit.Tests
             ObjInfo? expectedObjectInfo = ObjectInfoService.RetrieveObjectInfo(objectInfoBroker, testClass);
 
             // when
-            string? expectedImplementedInterface =
-                expectedObjectInfo!.TypeInfo!.ImplementedInterfaces!.FirstOrDefault(a => a.Name.Equals("ITestClass")).Name;
+            var implementedInterface = expectedObjectInfo!.TypeInfo!.ImplementedInterfaces!.FirstOrDefault(a => a.Name.Equals("ITestClass"));
+            string? expectedImplementedInterface = implementedInterface?.Name;
 
             // then
             expectedImplementedInterface.Should().NotBe(null);
-            expectedImplementedInterface.Equals("ITestClass");
+            expectedImplementedInterface.Should().Be("ITestClass");
         }
 
         [Fact]
@@ -200,12 +200,12 @@ namespace ObjectInfo.Unit.Tests
             ObjInfo? expectedObjectInfo = ObjectInfoService.RetrieveObjectInfo(objectInfoBroker, testClass);
 
             // when
-            string? expectedMethodInfo =
-                expectedObjectInfo!.TypeInfo!.MethodInfos!.FirstOrDefault(a => a.Name.Equals("EnsureCompliance")).Name;
+            var methodInfo = expectedObjectInfo!.TypeInfo!.MethodInfos!.FirstOrDefault(a => a.Name.Equals("EnsureCompliance"));
+            string? expectedMethodInfo = methodInfo?.Name;
 
             // then
             expectedMethodInfo.Should().NotBe(null);
-            expectedMethodInfo.Equals("EnsureCompliance");
+            expectedMethodInfo.Should().Be("EnsureCompliance");
         }
 
         [Fact]
@@ -217,12 +217,12 @@ namespace ObjectInfo.Unit.Tests
             ObjInfo? expectedObjectInfo = ObjectInfoService.RetrieveObjectInfo(objectInfoBroker, testClass);
 
             // when
-            string? expectedPropInfo =
-                expectedObjectInfo!.TypeInfo!.PropInfos!.FirstOrDefault(a => a.Name.Equals("Name")).Name;
+            var propInfo = expectedObjectInfo!.TypeInfo!.PropInfos!.FirstOrDefault(a => a.Name.Equals("Name"));
+            string? expectedPropInfo = propInfo?.Name;
 
             // then
             expectedPropInfo.Should().NotBe(null);
-            expectedPropInfo.Equals("Name");
+            expectedPropInfo.Should().Be("Name");
         }
 
         [Fact]
@@ -238,7 +238,7 @@ namespace ObjectInfo.Unit.Tests
 
             // then
             constructor.Should().NotBeNull();
-            constructor.ParameterTypes.Should().ContainSingle().Which.Should().Be("String");
+            constructor!.ParameterTypes.Should().ContainSingle().Which.Should().Be("String");
             constructor.ParameterNames.Should().ContainSingle().Which.Should().Be("name");
             constructor.IsPublic.Should().BeTrue();
             constructor.IsStatic.Should().BeFalse();
@@ -259,7 +259,7 @@ namespace ObjectInfo.Unit.Tests
 
             // then
             attribute.Should().NotBeNull();
-            attribute.Name.Should().Be("IsCompliant");
+            attribute!.Name.Should().Be("IsCompliant");
         }
 
         [Fact]
@@ -271,12 +271,12 @@ namespace ObjectInfo.Unit.Tests
             ObjInfo? expectedObjectInfo = ObjectInfoService.RetrieveObjectInfo(objectInfoBroker, testClass);
 
             // when
-            string? expectedAttrInfo =
-                expectedObjectInfo!.TypeInfo!.CustomAttrs!.FirstOrDefault(a => a.Name.Equals("IsCompliant")).Name;
+            var attrInfo = expectedObjectInfo!.TypeInfo!.CustomAttrs!.FirstOrDefault(a => a.Name.Equals("IsCompliant"));
+            string? expectedAttrInfo = attrInfo?.Name;
 
             // then
             expectedAttrInfo.Should().NotBe(null);
-            expectedAttrInfo.Equals("IsCompliant");
+            expectedAttrInfo.Should().Be("IsCompliant");
         }
 
         [Fact]
@@ -290,12 +290,12 @@ namespace ObjectInfo.Unit.Tests
             // when
             var expectedPropInfo =
                 expectedObjectInfo!.TypeInfo!.PropInfos!.FirstOrDefault(a => a.Name.Equals("Name"));
-            string? expectedAttrInfo =
-                expectedPropInfo.CustomAttrs!.FirstOrDefault(a => a.Name.Equals("IsCompliant")).Name;
+            var attrInfo = expectedPropInfo?.CustomAttrs?.FirstOrDefault(a => a.Name.Equals("IsCompliant"));
+            string? expectedAttrInfo = attrInfo?.Name;
 
             // then
             expectedAttrInfo.Should().NotBe(null);
-            expectedAttrInfo.Equals("IsCompliant");
+            expectedAttrInfo.Should().Be("IsCompliant");
         }
 
         [Fact]

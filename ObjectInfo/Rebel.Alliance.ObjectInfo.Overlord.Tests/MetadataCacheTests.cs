@@ -37,7 +37,7 @@ namespace Rebel.Alliance.ObjectInfo.Overlord.Tests
 
             // Assert
             Assert.True(found);
-            Assert.Equal(metadata.FullName, retrieved.FullName);
+            Assert.Equal(metadata.FullName, retrieved!.FullName);
             Assert.True(metadata.ImplementsMetadataScanned);
         }
 
@@ -54,7 +54,7 @@ namespace Rebel.Alliance.ObjectInfo.Overlord.Tests
 
             // Assert
             Assert.True(found);
-            Assert.Equal(metadata.Name, retrieved.Name);
+            Assert.Equal(metadata.Name, retrieved!.Name);
         }
 
         [Fact]

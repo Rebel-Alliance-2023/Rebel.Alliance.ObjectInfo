@@ -85,7 +85,7 @@ namespace Rebel.Alliance.ObjectInfo.Overlord.Tests
         {
             // Arrange
             var provider = _serviceProvider.GetRequiredService<IMetadataProvider>();
-            var instance = new DerivedModel { Id = 1, Name = "Test" };
+            var instance = new DerivedModel { Id = 1, Name = "Test", Description = "Test Description" };
 
             // Act
             var metadata = await provider.GetTypeMetadataAsync(instance.GetType());
@@ -140,7 +140,7 @@ namespace Rebel.Alliance.ObjectInfo.Overlord.Tests
         {
             // Arrange
             var provider = _serviceProvider.GetRequiredService<IMetadataProvider>();
-            var instance = new DerivedModel { Id = 1, Name = "Test" };
+            var instance = new DerivedModel { Id = 1, Name = "Test", Description = "Test Description" };
 
             // Act
             var result = await provider.AnalyzeTypeAsync(instance.GetType(), "TestAnalyzer");
@@ -155,7 +155,7 @@ namespace Rebel.Alliance.ObjectInfo.Overlord.Tests
             return new Dictionary<Type, object>
         {
             { typeof(BaseModel), new BaseModel { Id = 1 } },
-            { typeof(DerivedModel), new DerivedModel { Id = 2, Name = "Test" } },
+            { typeof(DerivedModel), new DerivedModel { Id = 2, Name = "Test", Description = "Test Description" } },
             { typeof(AnotherModel), new AnotherModel(42) },
             { typeof(ConcreteTestModel), new ConcreteTestModel() },
             { typeof(ContainerModel), new ContainerModel { ContainerName = "Test" } }
@@ -167,11 +167,11 @@ namespace Rebel.Alliance.ObjectInfo.Overlord.Tests
             return type.Name switch
             {
                 nameof(BaseModel) => new BaseModel { Id = 1 },
-                nameof(DerivedModel) => new DerivedModel { Id = 2, Name = "Test" },
+                nameof(DerivedModel) => new DerivedModel { Id = 2, Name = "Test", Description = "Test Description" },
                 nameof(AnotherModel) => new AnotherModel(42),
                 nameof(ConcreteTestModel) => new ConcreteTestModel(),
                 nameof(ContainerModel) => new ContainerModel { ContainerName = "Test" },
-                _ => Activator.CreateInstance(type)
+                _ => Activator.CreateInstance(type) ?? throw new InvalidOperationException($"Failed to create instance of {type.Name}")
             };
         }
     }

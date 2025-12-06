@@ -227,28 +227,29 @@ namespace ObjectInfo.Deepdive.SpecificationGenerator.Runtime
         }
 
 
-        /// <summary>
-        /// Concrete implementation for testing purposes only
-        /// </summary>
-        internal class TestSqlSpecification<TEntity> : SqlSpecification<TEntity> where TEntity : class
+    }
+
+    /// <summary>
+    /// Concrete implementation for testing purposes only
+    /// </summary>
+    internal class TestSqlSpecification<TEntity> : SqlSpecification<TEntity> where TEntity : class
+    {
+        private readonly Action<TestSqlSpecification<TEntity>>? _whereClauseBuilder;
+
+        public TestSqlSpecification(Action<TestSqlSpecification<TEntity>>? whereClauseBuilder = null)
         {
-            private readonly Action<TestSqlSpecification<TEntity>>? _whereClauseBuilder;
-
-            public TestSqlSpecification(Action<TestSqlSpecification<TEntity>>? whereClauseBuilder = null)
-            {
-                _whereClauseBuilder = whereClauseBuilder;
-            }
-
-            protected override void BuildWhereClause()
-            {
-                _whereClauseBuilder?.Invoke(this as TestSqlSpecification<TEntity>);
-            }
-
-            // Expose protected methods for testing
-            public new void AddWhereClause(string clause) => base.AddWhereClause(clause);
-            public new void AddParameterizedWhereClause(string clause, string parameterName, object value)
-                => base.AddParameterizedWhereClause(clause, parameterName, value);
+            _whereClauseBuilder = whereClauseBuilder;
         }
+
+        protected override void BuildWhereClause()
+        {
+            _whereClauseBuilder?.Invoke(this);
+        }
+
+        // Expose protected methods for testing
+        public new void AddWhereClause(string clause) => base.AddWhereClause(clause);
+        public new void AddParameterizedWhereClause(string clause, string parameterName, object value)
+            => base.AddParameterizedWhereClause(clause, parameterName, value);
     }
 
     internal class NotSqlSpecification<T> : SqlSpecification<T> where T : class

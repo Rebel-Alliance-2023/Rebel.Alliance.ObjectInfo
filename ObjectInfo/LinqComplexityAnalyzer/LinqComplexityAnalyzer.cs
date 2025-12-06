@@ -92,7 +92,7 @@ namespace ObjectInfo.DeepDive.LinqComplexityAnalyzer
                 if (query.FromClause != null) operations.Add("From");
                 operations.AddRange(query.Body.Clauses.OfType<WhereClauseSyntax>().Select(_ => "Where"));
                 operations.AddRange(query.Body.Clauses.OfType<OrderByClauseSyntax>().Select(_ => "OrderBy"));
-                operations.AddRange(query.Body.Clauses.OfType<SelectClauseSyntax>().Select(_ => "Select"));
+                if (query.Body.SelectOrGroup is SelectClauseSyntax) operations.Add("Select");
             }
 
             return operations.Distinct();
