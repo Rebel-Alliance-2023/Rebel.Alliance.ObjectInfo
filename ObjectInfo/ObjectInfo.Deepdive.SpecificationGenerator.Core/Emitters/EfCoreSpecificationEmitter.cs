@@ -7,10 +7,18 @@ using ObjectInfo.Deepdive.SpecificationGenerator.Core.Models;
 
 namespace ObjectInfo.Deepdive.SpecificationGenerator.Core.Emitters
 {
+    /// <summary>
+    /// Emits Entity Framework Core-specific specification source code.
+    /// </summary>
     public class EfCoreSpecificationEmitter : BaseSpecificationEmitter
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="EfCoreSpecificationEmitter"/> class.
+        /// </summary>
+        /// <param name="context">The source production context.</param>
         public EfCoreSpecificationEmitter(ISourceProductionContext context) : base(context) { }
 
+        /// <inheritdoc/>
         public override string EmitSpecification(SpecificationTarget target)
         {
             var builder = new StringBuilder();

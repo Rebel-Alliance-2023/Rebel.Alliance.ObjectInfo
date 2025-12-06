@@ -126,7 +126,7 @@ namespace ObjectInfo.Deepdive.SpecificationGenerator.Tests.Dapper.Tests
         {
             // Arrange
             var spec = new TestSqlSpecification<Customer>(c =>
-                c.Name.StartsWith("Test") && c.Email.Contains("@example.com"), _logger);
+                c.Name.StartsWith("Test") && c.Email!.Contains("@example.com"), _logger);
 
             // Act
             var sql = spec.ToSql();
@@ -296,8 +296,8 @@ namespace ObjectInfo.Deepdive.SpecificationGenerator.Tests.Dapper.Tests
                 }
                 else if (node.Method.Name == "Contains")
                 {
-                    IEnumerable collection = null;
-                    Expression itemExpr = null;
+                    IEnumerable? collection = null;
+                    Expression? itemExpr = null;
 
                     if (node.Object != null && typeof(IEnumerable).IsAssignableFrom(node.Object.Type))
                     {

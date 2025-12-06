@@ -31,7 +31,9 @@ namespace ObjectInfo.DeepDive.Plugins
                 .SelectMany(a => a.GetTypes())
                 .Where(t => typeof(IAnalyzerPlugin).IsAssignableFrom(t) && !t.IsInterface && !t.IsAbstract);
 
-            return pluginTypes.Select(t => (IAnalyzerPlugin)Activator.CreateInstance(t));
+            return pluginTypes
+                .Select(t => Activator.CreateInstance(t) as IAnalyzerPlugin)
+                .Where(p => p != null)!;
         }
     }
 }

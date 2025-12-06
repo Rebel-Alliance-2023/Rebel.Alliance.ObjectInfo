@@ -7,8 +7,15 @@ using Rebel.Alliance.Specification.Dapper.Core;
 
 namespace Rebel.Alliance.Specification.Dapper.Core
 {
+    /// <summary>
+    /// Visits LINQ expression trees and converts them to SQL WHERE clauses for Dapper queries.
+    /// </summary>
+    /// <typeparam name="T">The entity type being queried.</typeparam>
     public class SqlExpressionVisitor<T> : ExpressionVisitor where T : class
     {
+        /// <summary>
+        /// The StringBuilder used to construct the SQL statement.
+        /// </summary>
         protected readonly StringBuilder _sqlBuilder = new();
         private readonly IParameterManager _parameters;
         private readonly SqlSpecification<T> _specification;
@@ -17,20 +24,34 @@ namespace Rebel.Alliance.Specification.Dapper.Core
         // Cache for column name resolution
         private readonly ConcurrentDictionary<MemberInfo, string> _columnNameCache = new();
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SqlExpressionVisitor{T}"/> class.
+        /// </summary>
+        /// <param name="specification">The SQL specification to use for parameter management.</param>
         public SqlExpressionVisitor(SqlSpecification<T> specification)
         {
             _specification = specification ?? throw new ArgumentNullException(nameof(specification));
             _parameters = specification.ParametersManager;
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SqlExpressionVisitor{T}"/> class with a custom parameter manager.
+        /// </summary>
+        /// <param name="specification">The SQL specification.</param>
+        /// <param name="parameters">The parameter manager to use.</param>
         public SqlExpressionVisitor(SqlSpecification<T> specification, IParameterManager parameters)
         {
             _specification = specification ?? throw new ArgumentNullException(nameof(specification));
             _parameters = parameters ?? throw new ArgumentNullException(nameof(parameters));
         }
 
+        /// <summary>
+        /// Gets the generated SQL string.
+        /// </summary>
+        /// <returns>The SQL WHERE clause.</returns>
         public string GetSql() => _sqlBuilder.ToString();
 
+        /// <inheritdoc/>
         protected override Expression VisitBinary(BinaryExpression node)
         {
             bool needsParentheses = node.NodeType == ExpressionType.AndAlso || node.NodeType == ExpressionType.OrElse;
@@ -59,6 +80,7 @@ namespace Rebel.Alliance.Specification.Dapper.Core
             return node;
         }
 
+        /// <inheritdoc/>
         protected override Expression VisitMethodCall(MethodCallExpression node)
         {
             if (node.Method.DeclaringType == typeof(string))
@@ -73,6 +95,7 @@ namespace Rebel.Alliance.Specification.Dapper.Core
             return base.VisitMethodCall(node);
         }
 
+        /// <inheritdoc/>
         protected override Expression VisitMember(MemberExpression node)
         {
             if (node.Expression is ParameterExpression)
@@ -92,20 +115,22 @@ namespace Rebel.Alliance.Specification.Dapper.Core
             }
 
             var value = EvaluateValue(node);
-            var normalized = NormalizeParameterValue(value);
+            var normalized = NormalizeParameterValue(value ?? DBNull.Value);
             var paramName = _parameters.CreateParameter(normalized);
             _sqlBuilder.Append(paramName);
             return node;
         }
 
+        /// <inheritdoc/>
         protected override Expression VisitConstant(ConstantExpression node)
         {
-            var normalized = NormalizeParameterValue(node.Value);
+            var normalized = NormalizeParameterValue(node.Value ?? DBNull.Value);
             var paramName = _parameters.CreateParameter(normalized);
             _sqlBuilder.Append(paramName);
             return node;
         }
 
+        /// <inheritdoc/>
         protected override Expression VisitUnary(UnaryExpression node)
         {
             if (node.NodeType == ExpressionType.Not)

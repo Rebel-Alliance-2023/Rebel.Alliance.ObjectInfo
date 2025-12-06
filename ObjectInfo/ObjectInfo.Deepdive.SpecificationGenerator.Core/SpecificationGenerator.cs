@@ -12,9 +12,16 @@ using ObjectInfo.Deepdive.SpecificationGenerator.Core.Models;
 
 namespace ObjectInfo.Deepdive.SpecificationGenerator.Core
 {
+    /// <summary>
+    /// Incremental source generator that generates specification classes for entities.
+    /// </summary>
     [Generator]
     public class SpecificationGenerator : IIncrementalGenerator
     {
+        /// <summary>
+        /// Initializes the generator.
+        /// </summary>
+        /// <param name="context">The initialization context.</param>
         public void Initialize(IncrementalGeneratorInitializationContext context)
         {
             var syntaxProvider = context.SyntaxProvider
@@ -255,7 +262,7 @@ namespace ObjectInfo.Deepdive.SpecificationGenerator.Core
 
         private static bool IsSystemType(ITypeSymbol type)
         {
-            return type.ContainingNamespace?.ToString().StartsWith("System") ?? false;
+            return type.ContainingNamespace?.ToString()?.StartsWith("System") ?? false;
         }
 
         private static Diagnostic CreateExceptionDiagnostic(Exception ex, SpecificationTarget target)

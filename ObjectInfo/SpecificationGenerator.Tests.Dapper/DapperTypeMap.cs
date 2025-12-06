@@ -17,7 +17,7 @@ public static class DapperTypeMap
         SqlMapper.SetTypeMap(typeof(Order), map);
     }
 
-    public static TResult MapOrder<TResult>(dynamic row) where TResult : class
+    public static TResult? MapOrder<TResult>(dynamic row) where TResult : class
     {
         var order = new Order
         {

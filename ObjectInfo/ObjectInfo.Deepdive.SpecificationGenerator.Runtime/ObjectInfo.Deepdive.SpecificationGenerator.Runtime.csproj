@@ -67,7 +67,7 @@
 		<PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="8.0.1" />
 		<PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="8.0.10" />
 		<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.2" />
-		<PackageReference Include="System.Linq.Dynamic.Core" Version="1.4.8" />		
+		<PackageReference Include="System.Linq.Dynamic.Core" Version="1.6.0" />		
 		
 		<!-- Source Link -->
 		<PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" />

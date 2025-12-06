@@ -17,8 +17,8 @@
         public bool GenerateNavigationSpecs { get; set; } = true;
 
         /// <summary>
-        /// Gets or sets the base class for the generated specification
-        /// Default is BaseSpecification<T>
+        /// Gets or sets the base class for the generated specification.
+        /// Default is <c>BaseSpecification&lt;T&gt;</c>.
         /// </summary>
         public Type? BaseClass { get; set; }
 

@@ -8,12 +8,21 @@ using System.Threading.Tasks;
 
 namespace ObjectInfo.DeepDive
 {
+    /// <summary>
+    /// Provides deep dive analysis capabilities for object information.
+    /// </summary>
     public class DeepDiveAnalysis
     {
         private readonly ObjInfo _baseObjectInfo;
         private readonly AnalyzerManager _analyzerManager;
         private readonly ILogger _logger;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="DeepDiveAnalysis"/> class.
+        /// </summary>
+        /// <param name="baseObjectInfo">The base object information to analyze.</param>
+        /// <param name="analyzerManager">The analyzer manager.</param>
+        /// <param name="logger">The logger instance.</param>
         public DeepDiveAnalysis(ObjInfo baseObjectInfo, AnalyzerManager analyzerManager, ILogger logger)
         {
             _baseObjectInfo = baseObjectInfo;
@@ -21,6 +30,10 @@ namespace ObjectInfo.DeepDive
             _logger = logger;
         }
 
+        /// <summary>
+        /// Runs all registered analyzers and returns the results.
+        /// </summary>
+        /// <returns>The collection of analysis results.</returns>
         public async Task<IEnumerable<AnalysisResult>> RunAllAnalyzersAsync()
         {
             _logger.Information("DeepDiveAnalysis.RunAllAnalyzersAsync started");

@@ -197,7 +197,7 @@ namespace ObjectInfo.Deepdive.SpecificationGenerator.Tests.Dapper.Infrastructure
                 command.ExecuteNonQuery();
             }
 
-            public void EnsureTableExistsAndIsLatestVersion(Func<IDbCommand> dbCommandFactory)
+            public void EnsureTableExistsAndIsLatestVersion(Func<IDbCommand>? dbCommandFactory)
             {
                 _log().WriteInformation($"Checking whether journal table {_tableName} exists..");
 
@@ -241,9 +241,10 @@ namespace ObjectInfo.Deepdive.SpecificationGenerator.Tests.Dapper.Infrastructure
                         var tableDefinition = command.ExecuteScalar() as string;
 
                         // Check if we need to update the schema
-                        if (!tableDefinition.Contains("SchemaVersionID") ||
+                        if (tableDefinition != null && 
+                            (!tableDefinition.Contains("SchemaVersionID") ||
                             !tableDefinition.Contains("ScriptName") ||
-                            !tableDefinition.Contains("Applied"))
+                            !tableDefinition.Contains("Applied")))
                         {
                             _log().WriteInformation($"Updating journal table {_tableName} schema...");
 

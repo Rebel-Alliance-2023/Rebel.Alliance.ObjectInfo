@@ -10,10 +10,18 @@ using ObjectInfo.Deepdive.SpecificationGenerator.Core.Models;
 
 namespace ObjectInfo.Deepdive.SpecificationGenerator.Core.Emitters
 {
+    /// <summary>
+    /// Emits Dapper-specific specification source code.
+    /// </summary>
     public class DapperSpecificationEmitter : BaseSpecificationEmitter
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="DapperSpecificationEmitter"/> class.
+        /// </summary>
+        /// <param name="context">The source production context.</param>
         public DapperSpecificationEmitter(ISourceProductionContext context) : base(context) { }
 
+        /// <inheritdoc/>
         public override string EmitSpecification(SpecificationTarget target)
         {
             var builder = new StringBuilder();

@@ -2,18 +2,39 @@ using System.Collections.Concurrent;
 
 namespace Rebel.Alliance.Specification.Dapper.Core
 {
+    /// <summary>
+    /// Manages SQL parameters for Dapper queries.
+    /// </summary>
     public interface IParameterManager
     {
+        /// <summary>
+        /// Creates a named parameter and stores the value.
+        /// </summary>
+        /// <param name="value">The parameter value.</param>
+        /// <returns>The generated parameter name.</returns>
         string CreateParameter(object value);
+
+        /// <summary>
+        /// Gets all stored parameters as a <see cref="DynamicParameters"/> object.
+        /// </summary>
+        /// <returns>The dynamic parameters for use with Dapper.</returns>
         DynamicParameters GetParameters();
+
+        /// <summary>
+        /// Clears all stored parameters.
+        /// </summary>
         void Clear();
     }
 
+    /// <summary>
+    /// Thread-safe implementation of <see cref="IParameterManager"/>.
+    /// </summary>
     public class ParameterManager : IParameterManager
     {
         private readonly ConcurrentDictionary<string, object> _parameters = new();
         private int _parameterCount;
 
+        /// <inheritdoc/>
         public string CreateParameter(object value)
         {
             var paramName = $"@p{Interlocked.Increment(ref _parameterCount)}";
@@ -21,6 +42,7 @@ namespace Rebel.Alliance.Specification.Dapper.Core
             return paramName;
         }
 
+        /// <inheritdoc/>
         public DynamicParameters GetParameters()
         {
             var parameters = new DynamicParameters();
@@ -31,6 +53,7 @@ namespace Rebel.Alliance.Specification.Dapper.Core
             return parameters;
         }
 
+        /// <inheritdoc/>
         public void Clear()
         {
             _parameters.Clear();

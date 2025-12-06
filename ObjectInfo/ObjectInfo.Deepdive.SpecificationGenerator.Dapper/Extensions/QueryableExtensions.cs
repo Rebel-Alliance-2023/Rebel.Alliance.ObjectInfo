@@ -2,8 +2,18 @@ using Rebel.Alliance.Specification.Dapper.Core;
 
 namespace Rebel.Alliance.Specification.Dapper.Extensions
 {
+    /// <summary>
+    /// Extension methods for applying specifications to IQueryable.
+    /// </summary>
     public static class QueryableExtensions
     {
+        /// <summary>
+        /// Applies the specification criteria to the query.
+        /// </summary>
+        /// <typeparam name="T">The entity type.</typeparam>
+        /// <param name="query">The query to apply the specification to.</param>
+        /// <param name="specification">The specification to apply.</param>
+        /// <returns>The query with the specification applied.</returns>
         public static IQueryable<T> ApplySpecification<T>(
             this IQueryable<T> query, 
             SqlSpecification<T> specification) where T : class

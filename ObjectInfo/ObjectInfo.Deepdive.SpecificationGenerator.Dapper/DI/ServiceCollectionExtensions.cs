@@ -5,6 +5,9 @@ using Rebel.Alliance.Specification.Dapper.Infrastructure;
 
 namespace Rebel.Alliance.Specification.Dapper.DI
 {
+    /// <summary>
+    /// Extension methods for configuring Dapper specification services.
+    /// </summary>
     public static class ServiceCollectionExtensions
     {
         /// <summary>

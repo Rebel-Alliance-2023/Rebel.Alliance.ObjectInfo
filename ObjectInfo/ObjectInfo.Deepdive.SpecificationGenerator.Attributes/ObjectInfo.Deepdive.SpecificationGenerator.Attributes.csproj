@@ -1,13 +1,13 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-	<PropertyGroup>
-		<TargetFramework>net10.0</TargetFramework>
-		<LangVersion>latest</LangVersion>
-		<Nullable>enable</Nullable>
-		<ImplicitUsings>enable</ImplicitUsings>
+<PropertyGroup>
+<TargetFrameworks>netstandard2.0;net10.0</TargetFrameworks>
+<LangVersion>latest</LangVersion>
+<Nullable>enable</Nullable>
+<ImplicitUsings>enable</ImplicitUsings>
 
-		<!-- Package Metadata -->
-		<PackageId>ObjectInfo.Deepdive.SpecificationGenerator.Attributes</PackageId>
+<!-- Package Metadata -->
+<PackageId>ObjectInfo.Deepdive.SpecificationGenerator.Attributes</PackageId>
 		<Version>1.0.0</Version>
 		<Authors>The Rebel Alliance</Authors>
 		<Company>The Rebel Alliance</Company>
@@ -40,6 +40,7 @@
 
 	<ItemGroup>
 		<PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All"/>
+		<PackageReference Include="PolySharp" Version="1.14.1" PrivateAssets="all" />
 	</ItemGroup>
 
 	<!-- Package the generator -->

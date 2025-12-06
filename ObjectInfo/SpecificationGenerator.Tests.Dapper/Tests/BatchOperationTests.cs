@@ -709,7 +709,7 @@ namespace ObjectInfo.Deepdive.SpecificationGenerator.Tests.Dapper.Tests
                     // Commit the transaction
                     await transaction.CommitAsync();
                 }
-                catch (Exception ex)
+                catch
                 {
                     // Rollback if any error occurs
                     await transaction.RollbackAsync();

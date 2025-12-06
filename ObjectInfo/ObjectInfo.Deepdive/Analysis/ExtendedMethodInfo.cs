@@ -14,12 +14,21 @@ using ObjectInfo.Models.MethodInfo;
 
 namespace ObjectInfo.DeepDive.Analysis
 {
-  public class ExtendedMethodInfo : IExtendedMethodInfo
+    /// <summary>
+    /// Provides extended information about a method, including decompilation capabilities.
+    /// </summary>
+    public class ExtendedMethodInfo : IExtendedMethodInfo
     {
         private readonly IMethodInfo _baseMethodInfo;
         private readonly ILogger _logger;
         private readonly Assembly _testAssembly;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ExtendedMethodInfo"/> class.
+        /// </summary>
+        /// <param name="baseMethodInfo">The base method information.</param>
+        /// <param name="logger">The logger instance.</param>
+        /// <param name="testAssembly">The assembly containing the method.</param>
         public ExtendedMethodInfo(IMethodInfo baseMethodInfo, ILogger logger, Assembly testAssembly)
         {
             _baseMethodInfo = baseMethodInfo;
@@ -27,31 +36,51 @@ namespace ObjectInfo.DeepDive.Analysis
             _testAssembly = testAssembly;
         }
 
+        /// <summary>
+        /// Gets or sets the declaring type name.
+        /// </summary>
         public string DeclaringType 
         { 
             get => _baseMethodInfo.DeclaringType;
             set => _baseMethodInfo.DeclaringType = value;
         }
 
+        /// <summary>
+        /// Gets or sets the method name.
+        /// </summary>
         public string Name 
         { 
             get => _baseMethodInfo.Name;
             set => _baseMethodInfo.Name = value;
         }
 
+        /// <summary>
+        /// Gets or sets the reflected type name.
+        /// </summary>
         public string ReflectedType 
         { 
             get => _baseMethodInfo.ReflectedType;
             set => _baseMethodInfo.ReflectedType = value;
         }
 
+        /// <summary>
+        /// Gets or sets the custom attributes.
+        /// </summary>
         public List<ObjectInfo.Models.TypeInfo.ITypeInfo> CustomAttrs 
         { 
             get => _baseMethodInfo.CustomAttrs;
             set => _baseMethodInfo.CustomAttrs = value;
         }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether the method is virtual.
+        /// </summary>
         public bool IsVirtual { get;set; }
 
+        /// <summary>
+        /// Gets the decompiled method body as source code.
+        /// </summary>
+        /// <returns>The decompiled method body.</returns>
         public string GetMethodBody()
         {
             try

@@ -5,11 +5,19 @@ using Serilog;
 
 namespace ObjectInfo.DeepDive
 {
+    /// <summary>
+    /// Manages and executes analyzers for deep dive analysis.
+    /// </summary>
     public class AnalyzerManager
     {
         private readonly IEnumerable<IAnalyzer> _analyzers;
         private readonly ILogger _logger;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="AnalyzerManager"/> class.
+        /// </summary>
+        /// <param name="analyzers">The collection of analyzers.</param>
+        /// <param name="logger">The logger instance.</param>
         public AnalyzerManager(IEnumerable<IAnalyzer> analyzers, ILogger logger)
         {
             _analyzers = analyzers ?? throw new ArgumentNullException(nameof(analyzers));
@@ -35,6 +43,11 @@ namespace ObjectInfo.DeepDive
             return analyzer;
         }
 
+        /// <summary>
+        /// Runs all registered analyzers on the specified object information.
+        /// </summary>
+        /// <param name="objInfo">The object information to analyze.</param>
+        /// <returns>The collection of analysis results.</returns>
         public async Task<IEnumerable<AnalysisResult>> RunAnalyzersAsync(ObjInfo objInfo)
         {
             ArgumentNullException.ThrowIfNull(objInfo);
@@ -57,6 +70,12 @@ namespace ObjectInfo.DeepDive
             return results;
         }
 
+        /// <summary>
+        /// Runs a specific analyzer by name on the provided context.
+        /// </summary>
+        /// <param name="analyzerName">The name of the analyzer to run.</param>
+        /// <param name="context">The analysis context.</param>
+        /// <returns>The analysis result.</returns>
         public async Task<AnalysisResult> RunAnalyzerAsync(string analyzerName, AnalysisContext context)
         {
             var analyzer = GetAnalyzer(analyzerName);

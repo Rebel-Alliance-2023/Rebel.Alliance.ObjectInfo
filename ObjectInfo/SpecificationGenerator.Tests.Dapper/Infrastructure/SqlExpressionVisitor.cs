@@ -29,7 +29,7 @@ namespace ObjectInfo.Deepdive.SpecificationGenerator.Tests.Dapper.Infrastructure
 
     public abstract class SqlSpecification<T> where T : class
     {
-        protected Expression<Func<T, bool>> Criteria { get; set; }
+        protected Expression<Func<T, bool>> Criteria { get; set; } = x => true;
         protected List<string> WhereClauses { get; } = new List<string>();
 
         // Changed access modifier to 'internal'
@@ -165,7 +165,7 @@ namespace ObjectInfo.Deepdive.SpecificationGenerator.Tests.Dapper.Infrastructure
             // Evaluate the member expression to get its value (without compiling)
             var value = EvaluateValue(node);
             var paramName = $"@p{_parameterIndex++}";
-            _specification.Parameters[paramName] = value;
+            _specification.Parameters[paramName] = value ?? DBNull.Value;
             _sqlBuilder.Append(paramName);
             return node;
         }
@@ -178,7 +178,7 @@ namespace ObjectInfo.Deepdive.SpecificationGenerator.Tests.Dapper.Infrastructure
                 {
                     // Handle StringComparison parameter
                     bool ignoreCase = false;
-                    Expression searchExpression = null;
+                    Expression? searchExpression = null;
 
                     if (node.Arguments.Count == 2)
                     {
@@ -226,7 +226,7 @@ namespace ObjectInfo.Deepdive.SpecificationGenerator.Tests.Dapper.Infrastructure
                 {
                     // Handle StartsWith method
                     bool ignoreCase = false;
-                    Expression searchExpression = null;
+                    Expression? searchExpression = null;
 
                     if (node.Arguments.Count == 2)
                     {
@@ -262,7 +262,7 @@ namespace ObjectInfo.Deepdive.SpecificationGenerator.Tests.Dapper.Infrastructure
                 {
                     // Handle EndsWith method
                     bool ignoreCase = false;
-                    Expression searchExpression = null;
+                    Expression? searchExpression = null;
 
                     if (node.Arguments.Count == 2)
                     {
@@ -302,8 +302,8 @@ namespace ObjectInfo.Deepdive.SpecificationGenerator.Tests.Dapper.Infrastructure
                 // 2. Enumerable.Contains(collection, item) - Arguments[0] is collection, Arguments[1] is item
                 // 3. MemoryExtensions.Contains(span, item, comparer) - Arguments[0] is span (via op_Implicit), Arguments[1] is item
                 
-                Expression collExpr = null;
-                Expression itemExpr = null;
+                Expression? collExpr = null;
+                Expression? itemExpr = null;
                 
                 if (node.Object != null)
                 {
@@ -391,7 +391,7 @@ namespace ObjectInfo.Deepdive.SpecificationGenerator.Tests.Dapper.Infrastructure
             return base.VisitMethodCall(node);
         }
 
-        private static object EvaluateValue(Expression expr)
+        private static object? EvaluateValue(Expression expr)
         {
             switch (expr)
             {
@@ -429,7 +429,7 @@ namespace ObjectInfo.Deepdive.SpecificationGenerator.Tests.Dapper.Infrastructure
             }
         }
 
-        private static IEnumerable EvaluateEnumerable(Expression expr)
+        private static IEnumerable? EvaluateEnumerable(Expression expr)
         {
             switch (expr)
             {
@@ -437,7 +437,7 @@ namespace ObjectInfo.Deepdive.SpecificationGenerator.Tests.Dapper.Infrastructure
                     return ce.Value as IEnumerable;
                 case NewArrayExpression nae:
                     {
-                        var items = new object[nae.Expressions.Count];
+                        var items = new object?[nae.Expressions.Count];
                         for (int i = 0; i < nae.Expressions.Count; i++)
                             items[i] = EvaluateValue(nae.Expressions[i]);
                         return items;

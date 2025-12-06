@@ -19,7 +19,9 @@ namespace ObjectInfo.Benchmarks
         private readonly CultureInfo _inv = CultureInfo.InvariantCulture;
         private readonly decimal _dec = 1234.56m;
         private readonly double _dbl = 1234.56;
+#pragma warning disable CS0414 // Field is assigned but its value is never used
         private readonly float _flt = 1234.56f;
+#pragma warning restore CS0414
         private readonly string _intStr = "123456";
         private readonly string _longStr = "1234567890123";
         private readonly string _decStr = "123456.78";

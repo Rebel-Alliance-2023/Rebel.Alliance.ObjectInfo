@@ -1,5 +1,8 @@
 namespace Rebel.Alliance.Specification.Dapper.Configuration
 {
+    /// <summary>
+    /// Configuration options for Dapper specification behavior.
+    /// </summary>
     public class DapperSpecificationOptions
     {
         /// <summary>
