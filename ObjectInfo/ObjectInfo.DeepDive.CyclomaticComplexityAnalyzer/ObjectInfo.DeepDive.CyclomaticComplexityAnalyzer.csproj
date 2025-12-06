@@ -2,7 +2,8 @@
 
 	<PropertyGroup>
 		<!-- Target framework -->
-		<TargetFramework>net8.0</TargetFramework>
+		<TargetFramework>net10.0</TargetFramework>
+		<LangVersion>latest</LangVersion>
 
 		<!-- Enable implicit usings and nullable reference types -->
 		<ImplicitUsings>enable</ImplicitUsings>

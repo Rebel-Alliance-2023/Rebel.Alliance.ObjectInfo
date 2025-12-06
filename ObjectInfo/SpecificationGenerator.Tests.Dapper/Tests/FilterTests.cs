@@ -77,6 +77,22 @@ namespace ObjectInfo.Deepdive.SpecificationGenerator.Tests.Dapper.Tests
             var parameters = spec.GetParameters();
             Logger.Information("Generated SQL: {Sql}", sql);
             Logger.Information("Parameters: {@Parameters}", parameters);
+            // Inspect parameters in detail
+            foreach (var kv in parameters)
+            {
+                var key = kv.Key; var val = kv.Value;
+                if (val is System.Collections.IEnumerable en && val is not string)
+                {
+                    var list = new System.Collections.Generic.List<object>();
+                    foreach (var v in en) list.Add(v ?? "<null>");
+                    Logger.Information("Param {Key}: IEnumerable count={Count}, items={Items}, runtime={Type}",
+                        key, list.Count, list, val?.GetType().FullName);
+                }
+                else
+                {
+                    Logger.Information("Param {Key}: Value={Value}, runtime={Type}", key, val, val?.GetType().FullName);
+                }
+            }
 
             var results = await WithConnection(async conn =>
                 await conn.QueryAsync<Customer>(sql, parameters));
@@ -142,7 +158,8 @@ namespace ObjectInfo.Deepdive.SpecificationGenerator.Tests.Dapper.Tests
             await SeedTestDataAsync();
             // Arrange
             var validStatuses = new[] { OrderStatus.Processing, OrderStatus.Shipped };
-            var spec = new TestSpecification<Order>(o => validStatuses.Contains(o.Status));
+            var spec = new TestSpecification<Order>(
+                o => new[] { OrderStatus.Processing, OrderStatus.Shipped }.Contains(o.Status));
 
             // Act
             var sql = spec.ToSql();

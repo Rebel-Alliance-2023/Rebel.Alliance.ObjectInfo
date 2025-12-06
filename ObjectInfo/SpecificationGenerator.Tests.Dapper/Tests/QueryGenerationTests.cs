@@ -175,8 +175,9 @@ namespace ObjectInfo.Deepdive.SpecificationGenerator.Tests.Dapper.Tests
             sql.Should().Contain("CustomerType IN (@p0, @p1)");
 
             var parameters = spec.GetParameters();
-            parameters["@p0"].Should().Be(CustomerType.Premium);
-            parameters["@p1"].Should().Be(CustomerType.VIP);
+            // Enum values are normalized to their underlying integer type for SQLite compatibility
+            parameters["@p0"].Should().Be((int)CustomerType.Premium);
+            parameters["@p1"].Should().Be((int)CustomerType.VIP);
         }
 
         // Note: Paging and ordering functionalities are not implemented in the current code.

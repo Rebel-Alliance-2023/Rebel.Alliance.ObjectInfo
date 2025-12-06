@@ -91,7 +91,7 @@ namespace Rebel.Alliance.Specification.Dapper.Core
                 return node;
             }
 
-            var value = GetValueFast(node);
+            var value = EvaluateValue(node);
             var normalized = NormalizeParameterValue(value);
             var paramName = _parameters.CreateParameter(normalized);
             _sqlBuilder.Append(paramName);
@@ -146,12 +146,16 @@ namespace Rebel.Alliance.Specification.Dapper.Core
 
             if (node.Method.IsStatic)
             {
-                collection = (IEnumerable)(GetValueFast(node.Arguments[0]) ?? throw new InvalidOperationException("Collection is null"));
+                var collExpr = node.Arguments[0];
+                var maybe = ResolveCollection(collExpr);
+                collection = (IEnumerable)(maybe ?? throw new InvalidOperationException("Collection is null"));
                 itemExpr = node.Arguments[1];
             }
             else
             {
-                collection = (IEnumerable)(GetValueFast(node.Object!) ?? throw new InvalidOperationException("Collection is null"));
+                var collExpr = node.Object!;
+                var maybe = ResolveCollection(collExpr);
+                collection = (IEnumerable)(maybe ?? throw new InvalidOperationException("Collection is null"));
                 itemExpr = node.Arguments[0];
             }
 
@@ -171,6 +175,147 @@ namespace Rebel.Alliance.Specification.Dapper.Core
 
             _sqlBuilder.Append(string.Join(", ", parameters)).Append(')');
             return node;
+        }
+
+        private IEnumerable? ResolveCollection(Expression expr)
+        {
+            // Try specific shapes first
+            switch (expr)
+            {
+                case UnaryExpression ue when ue.NodeType == ExpressionType.Convert || ue.NodeType == ExpressionType.ConvertChecked:
+                    return ResolveCollection(ue.Operand);
+                case NewArrayExpression nae:
+                    {
+                        var items = new object?[nae.Expressions.Count];
+                        for (int i = 0; i < nae.Expressions.Count; i++)
+                            items[i] = EvaluateValue(nae.Expressions[i]);
+                        return items;
+                    }
+                case ConstantExpression ce:
+                    return ce.Value as IEnumerable;
+                case MemberExpression me:
+                    {
+                        var instance = me.Expression != null ? EvaluateValue(me.Expression) : null;
+                        if (me.Member is FieldInfo fi) return fi.GetValue(instance) as IEnumerable;
+                        if (me.Member is PropertyInfo pi) return pi.GetValue(instance) as IEnumerable;
+                        return null;
+                    }
+                case MethodCallExpression mce:
+                    {
+                        // Collapse LINQ wrappers like AsEnumerable/ToArray/ToList/Cast/OfType around a resolvable source
+                        if (mce.Arguments.Count > 0)
+                        {
+                            var src = ResolveCollection(mce.Arguments[0]);
+                            if (src != null) return src;
+                        }
+                        break;
+                    }
+            }
+            // Fallback: interpreter
+            try
+            {
+                Expression conv = expr.Type == typeof(IEnumerable)
+                    ? expr
+                    : (typeof(IEnumerable).IsAssignableFrom(expr.Type)
+                        ? expr
+                        : Expression.Convert(expr, typeof(IEnumerable)));
+                var func = Expression.Lambda<Func<IEnumerable>>(conv).Compile(preferInterpretation: true);
+                return func();
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        private IEnumerable? EvaluateEnumerable(Expression expr)
+        {
+            // Handle common cases without compiling
+            switch (expr)
+            {
+                case UnaryExpression ue when ue.NodeType == ExpressionType.Convert || ue.NodeType == ExpressionType.ConvertChecked:
+                    return EvaluateEnumerable(ue.Operand);
+                case ConstantExpression ce:
+                    return ce.Value as IEnumerable;
+                case MemberExpression me:
+                    {
+                        var instance = me.Expression != null ? EvaluateValue(me.Expression) : null;
+                        return me.Member switch
+                        {
+                            FieldInfo fi => fi.GetValue(instance) as IEnumerable,
+                            PropertyInfo pi => pi.GetValue(instance) as IEnumerable,
+                            _ => null
+                        };
+                    }
+                case MethodCallExpression mce when mce.Method.IsStatic && mce.Method.DeclaringType == typeof(Enumerable):
+                    // Collapse common LINQ wrappers around a constant/member enumerable
+                    if (mce.Arguments.Count > 0)
+                    {
+                        var src = EvaluateEnumerable(mce.Arguments[0]);
+                        return src; // We only need to iterate values later
+                    }
+                    break;
+                case NewArrayExpression nae:
+                    {
+                        var items = new object?[nae.Expressions.Count];
+                        for (int i = 0; i < nae.Expressions.Count; i++)
+                        {
+                            items[i] = EvaluateValue(nae.Expressions[i]);
+                        }
+                        return items;
+                    }
+            }
+            // Fallback: attempt to compile as IEnumerable without boxing to object to avoid invalid IL on .NET 10
+            try
+            {
+                if (expr is ParameterExpression)
+                {
+                    return null; // cannot evaluate at this stage
+                }
+                Expression conv = expr.Type == typeof(IEnumerable)
+                    ? expr
+                    : (typeof(IEnumerable).IsAssignableFrom(expr.Type)
+                        ? expr
+                        : Expression.Convert(expr, typeof(IEnumerable)));
+                var lambda = Expression.Lambda<Func<IEnumerable>>(conv);
+                var func = lambda.Compile(preferInterpretation: true);
+                return func();
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        private object? EvaluateValue(Expression expr)
+        {
+            switch (expr)
+            {
+                case ConstantExpression ce:
+                    return ce.Value;
+                case MethodCallExpression mce when mce.Method.IsStatic && mce.Method.DeclaringType == typeof(Enumerable):
+                    return EvaluateEnumerable(mce);
+                case MemberExpression me:
+                    {
+                        var instance = me.Expression != null ? EvaluateValue(me.Expression) : null;
+                        if (me.Member is FieldInfo fi) return fi.GetValue(instance);
+                        if (me.Member is PropertyInfo pi) return pi.GetValue(instance);
+                        return null;
+                    }
+                case UnaryExpression ue when ue.NodeType == ExpressionType.Convert || ue.NodeType == ExpressionType.ConvertChecked:
+                    return EvaluateValue(ue.Operand);
+                case NewArrayExpression nae:
+                    {
+                        var elementType = nae.Type.GetElementType() ?? typeof(object);
+                        var arr = Array.CreateInstance(elementType, nae.Expressions.Count);
+                        for (int i = 0; i < nae.Expressions.Count; i++)
+                        {
+                            arr.SetValue(EvaluateValue(nae.Expressions[i]), i);
+                        }
+                        return arr;
+                    }
+            }
+            return null;
         }
 
         private Expression HandleStringContains(MethodCallExpression node)
@@ -259,9 +404,48 @@ namespace Rebel.Alliance.Specification.Dapper.Core
 
         private object GetValueFast(Expression expr)
         {
-            // Cache compiled lambda delegates per expression
-            var del = _valueAccessCache.GetOrAdd(expr, e => Expression.Lambda(e).Compile());
-            return del.DynamicInvoke();
+            // Fast-path evaluation without compiling for constants, member access, and simple conversions.
+            switch (expr)
+            {
+                case ConstantExpression ce:
+                    return ce.Value!;
+                case MemberExpression me:
+                    {
+                        object? instance = me.Expression != null ? GetValueFast(me.Expression) : null;
+                        if (me.Member is FieldInfo fi)
+                            return fi.GetValue(instance)!;
+                        if (me.Member is PropertyInfo pi)
+                            return pi.GetValue(instance)!;
+                        throw new NotSupportedException($"Unsupported member access: {me.Member.MemberType}");
+                    }
+                case UnaryExpression ue when ue.NodeType == ExpressionType.Convert || ue.NodeType == ExpressionType.ConvertChecked:
+                    {
+                        var val = GetValueFast(ue.Operand);
+                        if (val == null) return null!;
+                        var targetType = Nullable.GetUnderlyingType(ue.Type) ?? ue.Type;
+                        // If already assignable, return as-is
+                        if (targetType.IsInstanceOfType(val)) return val;
+                        return Convert.ChangeType(val, targetType, CultureInfo.InvariantCulture)!;
+                    }
+                case NewArrayExpression nae:
+                    {
+                        var elementType = nae.Type.GetElementType() ?? typeof(object);
+                        var arr = Array.CreateInstance(elementType, nae.Expressions.Count);
+                        for (int i = 0; i < nae.Expressions.Count; i++)
+                        {
+                            var v = GetValueFast(nae.Expressions[i]);
+                            arr.SetValue(v, i);
+                        }
+                        return arr;
+                    }
+            }
+            // Fallback: compile to a strongly-typed delegate using interpreter to avoid invalid IL on .NET 10
+            var del = _valueAccessCache.GetOrAdd(expr, e =>
+            {
+                var body = e.Type.IsValueType ? Expression.Convert(e, typeof(object)) : e;
+                return Expression.Lambda<Func<object>>(body).Compile(preferInterpretation: true);
+            });
+            return ((Func<object>)del).Invoke();
         }
 
         private static object NormalizeParameterValue(object value)

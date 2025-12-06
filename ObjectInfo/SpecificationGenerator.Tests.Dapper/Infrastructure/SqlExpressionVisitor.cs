@@ -162,8 +162,8 @@ namespace ObjectInfo.Deepdive.SpecificationGenerator.Tests.Dapper.Infrastructure
                 return node;
             }
 
-            // Evaluate the member expression to get its value
-            var value = Expression.Lambda(node).Compile().DynamicInvoke();
+            // Evaluate the member expression to get its value (without compiling)
+            var value = EvaluateValue(node);
             var paramName = $"@p{_parameterIndex++}";
             _specification.Parameters[paramName] = value;
             _sqlBuilder.Append(paramName);
@@ -183,7 +183,8 @@ namespace ObjectInfo.Deepdive.SpecificationGenerator.Tests.Dapper.Infrastructure
                     if (node.Arguments.Count == 2)
                     {
                         // Get the StringComparison argument
-                        var comparisonType = (StringComparison)Expression.Lambda(node.Arguments[1]).Compile().DynamicInvoke();
+                        var comparisonValue = EvaluateValue(node.Arguments[1]);
+                        var comparisonType = comparisonValue is StringComparison sc ? sc : StringComparison.Ordinal;
                         if (comparisonType == StringComparison.OrdinalIgnoreCase || comparisonType == StringComparison.CurrentCultureIgnoreCase)
                         {
                             ignoreCase = true;
@@ -198,7 +199,7 @@ namespace ObjectInfo.Deepdive.SpecificationGenerator.Tests.Dapper.Infrastructure
                     Visit(node.Object); // The string property
                     _sqlBuilder.Append(" LIKE ");
                     var paramName = $"@p{_parameterIndex++}";
-                    var argumentValue = Expression.Lambda(searchExpression).Compile().DynamicInvoke();
+                    var argumentValue = EvaluateValue(searchExpression);
                     _specification.Parameters[paramName] = $"%{argumentValue}%";
                     _sqlBuilder.Append(paramName);
 
@@ -230,7 +231,8 @@ namespace ObjectInfo.Deepdive.SpecificationGenerator.Tests.Dapper.Infrastructure
                     if (node.Arguments.Count == 2)
                     {
                         // Get the StringComparison argument
-                        var comparisonType = (StringComparison)Expression.Lambda(node.Arguments[1]).Compile().DynamicInvoke();
+                        var comparisonValue = EvaluateValue(node.Arguments[1]);
+                        var comparisonType = comparisonValue is StringComparison sc ? sc : StringComparison.Ordinal;
                         if (comparisonType == StringComparison.OrdinalIgnoreCase || comparisonType == StringComparison.CurrentCultureIgnoreCase)
                         {
                             ignoreCase = true;
@@ -245,7 +247,7 @@ namespace ObjectInfo.Deepdive.SpecificationGenerator.Tests.Dapper.Infrastructure
                     Visit(node.Object); // The string property
                     _sqlBuilder.Append(" LIKE ");
                     var paramName = $"@p{_parameterIndex++}";
-                    var argumentValue = Expression.Lambda(searchExpression).Compile().DynamicInvoke();
+                    var argumentValue = EvaluateValue(searchExpression);
                     _specification.Parameters[paramName] = $"{argumentValue}%";
                     _sqlBuilder.Append(paramName);
 
@@ -265,7 +267,8 @@ namespace ObjectInfo.Deepdive.SpecificationGenerator.Tests.Dapper.Infrastructure
                     if (node.Arguments.Count == 2)
                     {
                         // Get the StringComparison argument
-                        var comparisonType = (StringComparison)Expression.Lambda(node.Arguments[1]).Compile().DynamicInvoke();
+                        var comparisonValue = EvaluateValue(node.Arguments[1]);
+                        var comparisonType = comparisonValue is StringComparison sc ? sc : StringComparison.Ordinal;
                         if (comparisonType == StringComparison.OrdinalIgnoreCase || comparisonType == StringComparison.CurrentCultureIgnoreCase)
                         {
                             ignoreCase = true;
@@ -280,7 +283,7 @@ namespace ObjectInfo.Deepdive.SpecificationGenerator.Tests.Dapper.Infrastructure
                     Visit(node.Object); // The string property
                     _sqlBuilder.Append(" LIKE ");
                     var paramName = $"@p{_parameterIndex++}";
-                    var argumentValue = Expression.Lambda(searchExpression).Compile().DynamicInvoke();
+                    var argumentValue = EvaluateValue(searchExpression);
                     _specification.Parameters[paramName] = $"%{argumentValue}";
                     _sqlBuilder.Append(paramName);
 
@@ -294,42 +297,175 @@ namespace ObjectInfo.Deepdive.SpecificationGenerator.Tests.Dapper.Infrastructure
             }
             else if (node.Method.Name == "Contains")
             {
-                IEnumerable collection = null;
+                // Support various Contains patterns:
+                // 1. Instance method: collection.Contains(item) - node.Object is collection, Arguments[0] is item
+                // 2. Enumerable.Contains(collection, item) - Arguments[0] is collection, Arguments[1] is item
+                // 3. MemoryExtensions.Contains(span, item, comparer) - Arguments[0] is span (via op_Implicit), Arguments[1] is item
+                
+                Expression collExpr = null;
                 Expression itemExpr = null;
-
-                if (node.Object != null && typeof(IEnumerable).IsAssignableFrom(node.Object.Type))
+                
+                if (node.Object != null)
                 {
-                    // Instance method call: collection.Contains(item)
-                    collection = Expression.Lambda(node.Object).Compile().DynamicInvoke() as IEnumerable;
-                    itemExpr = node.Arguments[0];
+                    // Instance method
+                    collExpr = node.Object;
+                    itemExpr = node.Arguments.Count > 0 ? node.Arguments[0] : null;
                 }
-                else if (node.Method.IsStatic && node.Method.DeclaringType == typeof(Enumerable))
+                else if (node.Method.DeclaringType?.Name == "MemoryExtensions" && node.Arguments.Count >= 2)
                 {
-                    // Static method call: Enumerable.Contains(collection, item)
-                    collection = Expression.Lambda(node.Arguments[0]).Compile().DynamicInvoke() as IEnumerable;
+                    // MemoryExtensions.Contains(span, item, comparer?)
+                    // The first argument is typically op_Implicit(array) or similar
+                    collExpr = node.Arguments[0];
                     itemExpr = node.Arguments[1];
                 }
-
-                if (collection != null && itemExpr != null)
+                else if (node.Arguments.Count >= 2)
                 {
-                    string columnName = GetMemberName(itemExpr);
-                    _sqlBuilder.Append(columnName);
-                    _sqlBuilder.Append(" IN (");
+                    // Enumerable.Contains(collection, item)
+                    collExpr = node.Arguments[0];
+                    itemExpr = node.Arguments[1];
+                }
+                else if (node.Arguments.Count == 1)
+                {
+                    // Possibly Array.Contains or similar
+                    collExpr = node.Object;
+                    itemExpr = node.Arguments[0];
+                }
 
-                    var parameters = new List<string>();
-                    foreach (var item in collection)
-                    {
-                        var paramName = $"@p{_parameterIndex++}";
-                        _specification.Parameters[paramName] = item;
-                        parameters.Add(paramName);
-                    }
-                    _sqlBuilder.Append(string.Join(", ", parameters));
-                    _sqlBuilder.Append(")");
+                if (collExpr == null || itemExpr == null)
+                {
+                    _sqlBuilder.Append("1 = 0");
                     return node;
                 }
+
+                string columnName = GetMemberName(itemExpr);
+
+                // Extract the actual array/collection from the expression
+                var srcExpr = UnwrapToCollection(collExpr);
+                List<object> values = new List<object>();
+                
+                if (srcExpr is NewArrayExpression nae)
+                {
+                    foreach (var e in nae.Expressions)
+                    {
+                        var v = EvaluateValue(e);
+                        if (v != null) values.Add(NormalizeForParameter(v));
+                    }
+                }
+                else if (srcExpr is ConstantExpression cec && cec.Value is IEnumerable constEn && cec.Value is not string)
+                {
+                    foreach (var v in constEn)
+                    {
+                        if (v != null) values.Add(NormalizeForParameter(v));
+                    }
+                }
+                else
+                {
+                    var raw = EvaluateValue(srcExpr);
+                    if (raw is IEnumerable en && raw is not string)
+                    {
+                        foreach (var v in en)
+                        {
+                            if (v != null) values.Add(NormalizeForParameter(v));
+                        }
+                    }
+                }
+
+                if (values.Count == 0)
+                {
+                    _sqlBuilder.Append("1 = 0");
+                    return node;
+                }
+
+                _sqlBuilder.Append(columnName).Append(" IN (");
+                var ph = new List<string>(values.Count);
+                foreach (var v in values)
+                {
+                    var p = $"@p{_parameterIndex++}";
+                    _specification.Parameters[p] = v;
+                    ph.Add(p);
+                }
+                _sqlBuilder.Append(string.Join(", ", ph)).Append(")");
+                return node;
             }
 
             return base.VisitMethodCall(node);
+        }
+
+        private static object EvaluateValue(Expression expr)
+        {
+            switch (expr)
+            {
+                case ConstantExpression ce:
+                    return ce.Value;
+                case MemberExpression me:
+                    {
+                        var instance = me.Expression != null ? EvaluateValue(me.Expression) : null;
+                        if (me.Member is FieldInfo fi) return fi.GetValue(instance);
+                        if (me.Member is PropertyInfo pi) return pi.GetValue(instance);
+                        break;
+                    }
+                case UnaryExpression ue when ue.NodeType == ExpressionType.Convert || ue.NodeType == ExpressionType.ConvertChecked:
+                    return EvaluateValue(ue.Operand);
+                case NewArrayExpression nae:
+                    {
+                        var elementType = nae.Type.GetElementType() ?? typeof(object);
+                        var arr = Array.CreateInstance(elementType, nae.Expressions.Count);
+                        for (int i = 0; i < nae.Expressions.Count; i++)
+                        {
+                            arr.SetValue(EvaluateValue(nae.Expressions[i]), i);
+                        }
+                        return arr;
+                    }
+            }
+            // Safe fallback: interpreter
+            try
+            {
+                var lambda = Expression.Lambda(expr);
+                return lambda.Compile(preferInterpretation: true).DynamicInvoke();
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        private static IEnumerable EvaluateEnumerable(Expression expr)
+        {
+            switch (expr)
+            {
+                case ConstantExpression ce:
+                    return ce.Value as IEnumerable;
+                case NewArrayExpression nae:
+                    {
+                        var items = new object[nae.Expressions.Count];
+                        for (int i = 0; i < nae.Expressions.Count; i++)
+                            items[i] = EvaluateValue(nae.Expressions[i]);
+                        return items;
+                    }
+                case UnaryExpression ue when ue.NodeType == ExpressionType.Convert || ue.NodeType == ExpressionType.ConvertChecked:
+                    return EvaluateEnumerable(ue.Operand);
+                case MemberExpression me:
+                    {
+                        var instance = me.Expression != null ? EvaluateValue(me.Expression) : null;
+                        if (me.Member is FieldInfo fi) return fi.GetValue(instance) as IEnumerable;
+                        if (me.Member is PropertyInfo pi) return pi.GetValue(instance) as IEnumerable;
+                        break;
+                    }
+                case MethodCallExpression mce when mce.Method.IsStatic && mce.Method.DeclaringType == typeof(Enumerable):
+                    if (mce.Arguments.Count > 0)
+                        return EvaluateEnumerable(mce.Arguments[0]);
+                    break;
+            }
+            try
+            {
+                var conv = Expression.Convert(expr, typeof(object));
+                var obj = Expression.Lambda<Func<object>>(conv).Compile(preferInterpretation: true)();
+                return obj as IEnumerable;
+            }
+            catch
+            {
+                return null;
+            }
         }
 
         protected override Expression VisitUnary(UnaryExpression node)
@@ -388,6 +524,44 @@ namespace ObjectInfo.Deepdive.SpecificationGenerator.Tests.Dapper.Infrastructure
                 return GetMemberName(unaryExpr.Operand);
             }
             throw new NotSupportedException($"Expression type {expression.GetType().Name} is not supported for extracting member name.");
+        }
+
+        private static object NormalizeForParameter(object value)
+        {
+            var t = value.GetType();
+            if (t.IsEnum)
+            {
+                var underlying = Enum.GetUnderlyingType(t);
+                return Convert.ChangeType(value, underlying, System.Globalization.CultureInfo.InvariantCulture);
+            }
+            return value;
+        }
+
+        private static Expression Unwrap(Expression expr)
+        {
+            while (expr is UnaryExpression ue && (ue.NodeType == ExpressionType.Convert || ue.NodeType == ExpressionType.ConvertChecked))
+            {
+                expr = ue.Operand;
+            }
+            return expr;
+        }
+
+        /// <summary>
+        /// Unwraps expression to find the underlying collection.
+        /// Handles: Convert expressions, op_Implicit method calls (e.g., T[] -> ReadOnlySpan&lt;T&gt;)
+        /// </summary>
+        private static Expression UnwrapToCollection(Expression expr)
+        {
+            // First unwrap any Convert/ConvertChecked
+            expr = Unwrap(expr);
+            
+            // Handle op_Implicit calls (used in .NET 10 for array -> span conversions)
+            while (expr is MethodCallExpression mce && mce.Method.Name == "op_Implicit" && mce.Arguments.Count == 1)
+            {
+                expr = Unwrap(mce.Arguments[0]);
+            }
+            
+            return expr;
         }
     }
 }
