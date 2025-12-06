@@ -42,6 +42,8 @@ namespace ObjectInfo.Infrastructure
         Other
     }
 
+    
+
     /// <summary>
     /// Simple option pair for enum value/name lists.
     /// </summary>
@@ -105,6 +107,12 @@ namespace ObjectInfo.Infrastructure
         /// </summary>
         private static readonly Func<object, object> s_nullableBoxer = CreateNullableBoxer();
 
+        /// <summary>
+        /// Cached enum options computed once per closed generic type when applicable.
+        /// Empty list for non-enum kinds to avoid allocations.
+        /// </summary>
+        private static readonly IReadOnlyList<SelectOption<T>> s_enumOptions = InitializeEnumOptions();
+
         private static ValueKind ComputeKind(Type t)
         {
             if (t == typeof(bool)) return ValueKind.Boolean;
@@ -130,7 +138,7 @@ namespace ObjectInfo.Infrastructure
         /// <returns>String representation appropriate for the input element's <c>value</c> attribute.</returns>
         public static string FormatForInput(T value, object kindOverride, CultureInfo culture)
         {
-            if (Equals(value, default(T))) return string.Empty;
+            if (System.Collections.Generic.EqualityComparer<T>.Default.Equals(value, default(T))) return string.Empty;
 
             switch (Kind)
             {
@@ -162,7 +170,7 @@ namespace ObjectInfo.Infrastructure
         /// <returns>A stable, culture-invariant string representation for option values.</returns>
         public static string ToOptionValueString(T value, CultureInfo culture)
         {
-            if (Equals(value, default(T))) return string.Empty;
+            if (System.Collections.Generic.EqualityComparer<T>.Default.Equals(value, default(T))) return string.Empty;
 
             switch (Kind)
             {
@@ -239,30 +247,73 @@ namespace ObjectInfo.Infrastructure
                 }
                 case ValueKind.DateTime:
                 {
-                    if (DateTime.TryParseExact(s, new[] { "yyyy-MM-dd", "yyyy-MM-ddTHH:mm" }, CultureInfo.InvariantCulture, DateTimeStyles.AssumeLocal, out var dt))
-                    { parsed = (T)(object)dt; return true; }
+                    // Span-based manual parsing to reduce overhead
+                    // Supported inputs: "yyyy-MM-dd" (10) and "yyyy-MM-ddTHH:mm" (16)
+                    if (s.Length == 10)
+                    {
+                        // yyyy-MM-dd
+                        if (TryParseDateString(s, out var year, out var month, out var day))
+                        {
+                            var dt = new DateTime(year, month, day, 0, 0, 0, DateTimeKind.Local);
+                            parsed = (T)(object)dt; return true;
+                        }
+                        parsed = default(T); return true;
+                    }
+                    else if (s.Length == 16)
+                    {
+                        // yyyy-MM-ddTHH:mm
+                        if (TryParseDateTimeLocalString(s, out var year, out var month, out var day, out var hour, out var minute))
+                        {
+                            var dt = new DateTime(year, month, day, hour, minute, 0, DateTimeKind.Local);
+                            parsed = (T)(object)dt; return true;
+                        }
+                        parsed = default(T); return true;
+                    }
+                    // Fallback: attempt general parse
+                    if (DateTime.TryParse(s, CultureInfo.InvariantCulture, DateTimeStyles.AssumeLocal, out var dt2))
+                    { parsed = (T)(object)dt2; return true; }
                     parsed = default(T); return true;
                 }
                 case ValueKind.Int32:
-                    if (int.TryParse(s, NumberStyles.Integer, CultureInfo.InvariantCulture, out var i32))
-                    { parsed = (T)(object)i32; return true; }
-                    parsed = default(T); return false;
+                    {
+                        if (TryParseInt32Fast(s, out var i32))
+                        { parsed = (T)(object)i32; return true; }
+                        if (int.TryParse(s, NumberStyles.Integer, CultureInfo.InvariantCulture, out i32))
+                        { parsed = (T)(object)i32; return true; }
+                        parsed = default(T); return false;
+                    }
                 case ValueKind.Int64:
-                    if (long.TryParse(s, NumberStyles.Integer, CultureInfo.InvariantCulture, out var i64))
-                    { parsed = (T)(object)i64; return true; }
-                    parsed = default(T); return false;
+                    {
+                        if (TryParseInt64Fast(s, out var i64))
+                        { parsed = (T)(object)i64; return true; }
+                        if (long.TryParse(s, NumberStyles.Integer, CultureInfo.InvariantCulture, out i64))
+                        { parsed = (T)(object)i64; return true; }
+                        parsed = default(T); return false;
+                    }
                 case ValueKind.Decimal:
-                    if (decimal.TryParse(s, NumberStyles.Number, CultureInfo.InvariantCulture, out var dec))
-                    { parsed = (T)(object)dec; return true; }
-                    parsed = default(T); return false;
+                    {
+                        if (TryParseDecimalFast(s, out var dec))
+                        { parsed = (T)(object)dec; return true; }
+                        if (decimal.TryParse(s, NumberStyles.Number, CultureInfo.InvariantCulture, out dec))
+                        { parsed = (T)(object)dec; return true; }
+                        parsed = default(T); return false;
+                    }
                 case ValueKind.Double:
-                    if (double.TryParse(s, NumberStyles.Float | NumberStyles.AllowThousands, CultureInfo.InvariantCulture, out var dbl))
-                    { parsed = (T)(object)dbl; return true; }
-                    parsed = default(T); return false;
+                    {
+                        if (TryParseDoubleFast(s, out var dbl))
+                        { parsed = (T)(object)dbl; return true; }
+                        if (double.TryParse(s, NumberStyles.Float | NumberStyles.AllowThousands, CultureInfo.InvariantCulture, out dbl))
+                        { parsed = (T)(object)dbl; return true; }
+                        parsed = default(T); return false;
+                    }
                 case ValueKind.Single:
-                    if (float.TryParse(s, NumberStyles.Float | NumberStyles.AllowThousands, CultureInfo.InvariantCulture, out var fl))
-                    { parsed = (T)(object)fl; return true; }
-                    parsed = default(T); return false;
+                    {
+                        if (TryParseFloatFast(s, out var fl))
+                        { parsed = (T)(object)fl; return true; }
+                        if (float.TryParse(s, NumberStyles.Float | NumberStyles.AllowThousands, CultureInfo.InvariantCulture, out fl))
+                        { parsed = (T)(object)fl; return true; }
+                        parsed = default(T); return false;
+                    }
                 case ValueKind.String:
                     parsed = (T)(object)s; return true;
                 default:
@@ -288,18 +339,7 @@ namespace ObjectInfo.Infrastructure
         /// <returns>An immutable list of enum values and their string names.</returns>
         public static IReadOnlyList<SelectOption<T>> BuildEnumOptions()
         {
-            if (!IsEnum) return Array.Empty<SelectOption<T>>();
-            var names = Enum.GetNames(NonNullableType);
-            var values = Enum.GetValues(NonNullableType);
-            var list = new List<SelectOption<T>>(names.Length);
-            int i = 0;
-            foreach (var v in values)
-            {
-                object boxed = v;
-                if (IsNullable && s_nullableBoxer != null) boxed = s_nullableBoxer(v);
-                list.Add(new SelectOption<T>((T)boxed, names[i++]));
-            }
-            return list;
+            return s_enumOptions;
         }
 
         /// <summary>
@@ -317,10 +357,239 @@ namespace ObjectInfo.Infrastructure
             return Expression.Lambda<Func<object, object>>(body, objParam).Compile();
         }
 
+        private static IReadOnlyList<SelectOption<T>> InitializeEnumOptions()
+        {
+            if (!IsEnum) return Array.Empty<SelectOption<T>>();
+            var names = Enum.GetNames(NonNullableType);
+            var values = Enum.GetValues(NonNullableType);
+            var list = new List<SelectOption<T>>(names.Length);
+            int i = 0;
+            foreach (var v in values)
+            {
+                object boxed = v;
+                if (IsNullable && s_nullableBoxer != null) boxed = s_nullableBoxer(v);
+                list.Add(new SelectOption<T>((T)boxed, names[i++]));
+            }
+            return list;
+        }
+
         /// <summary>
         /// Legacy helper retained for compatibility; prefer <see cref="s_nullableBoxer"/> for hot paths.
         /// </summary>
         private static object CreateNullable(Type innerType, object value)
             => Activator.CreateInstance(typeof(Nullable<>).MakeGenericType(innerType), value);
+
+        // Fast numeric parse helpers
+        private static bool TryParseDateString(string s, out int year, out int month, out int day)
+        {
+            year = month = day = 0;
+            if (s == null || s.Length != 10) return false; // yyyy-MM-dd
+            // yyyy
+            if (!TryParse4DigitsString(s, 0, out year)) return false;
+            // '-'
+            if (s[4] != '-') return false;
+            // MM
+            if (!TryParse2DigitsString(s, 5, out month)) return false;
+            if (s[7] != '-') return false;
+            // dd
+            if (!TryParse2DigitsString(s, 8, out day)) return false;
+            // Basic validation
+            if ((uint)month - 1u >= 12u) return false;
+            if ((uint)day - 1u >= 31u) return false;
+            return true;
+        }
+
+        private static bool TryParseDateTimeLocalString(string s, out int year, out int month, out int day, out int hour, out int minute)
+        {
+            year = month = day = hour = minute = 0;
+            if (s == null || s.Length != 16) return false; // yyyy-MM-ddTHH:mm
+            if (!TryParseDateString(s.Substring(0, 10), out year, out month, out day)) return false;
+            if (s[10] != 'T') return false;
+            if (!TryParse2DigitsString(s, 11, out hour)) return false;
+            if (s[13] != ':') return false;
+            if (!TryParse2DigitsString(s, 14, out minute)) return false;
+            if ((uint)hour > 23u) return false;
+            if ((uint)minute > 59u) return false;
+            return true;
+        }
+
+        private static bool TryParse2DigitsString(string s, int start, out int value)
+        {
+            value = 0;
+            if (s == null || s.Length < start + 2) return false;
+            int d1 = s[start] - '0';
+            int d2 = s[start + 1] - '0';
+            if ((uint)d1 > 9u || (uint)d2 > 9u) return false;
+            value = d1 * 10 + d2;
+            return true;
+        }
+
+        private static bool TryParse4DigitsString(string s, int start, out int value)
+        {
+            value = 0;
+            if (s == null || s.Length < start + 4) return false;
+            int d1 = s[start] - '0';
+            int d2 = s[start + 1] - '0';
+            int d3 = s[start + 2] - '0';
+            int d4 = s[start + 3] - '0';
+            if ((uint)d1 > 9u || (uint)d2 > 9u || (uint)d3 > 9u || (uint)d4 > 9u) return false;
+            value = (((d1 * 10) + d2) * 10 + d3) * 10 + d4;
+            return true;
+        }
+
+        private static bool TryParseInt32Fast(string s, out int value)
+        {
+            value = 0;
+            if (string.IsNullOrEmpty(s)) return false;
+            int i = 0;
+            bool neg = false;
+            if (s[0] == '+' || s[0] == '-') { neg = s[0] == '-'; i = 1; }
+            if (i >= s.Length) return false;
+            int acc = 0;
+            for (; i < s.Length; i++)
+            {
+                int d = s[i] - '0';
+                if ((uint)d > 9u) return false;
+                acc = acc * 10 + d;
+            }
+            value = neg ? -acc : acc;
+            return true;
+        }
+
+        private static bool TryParseInt64Fast(string s, out long value)
+        {
+            value = 0;
+            if (string.IsNullOrEmpty(s)) return false;
+            int i = 0;
+            bool neg = false;
+            if (s[0] == '+' || s[0] == '-') { neg = s[0] == '-'; i = 1; }
+            if (i >= s.Length) return false;
+            long acc = 0;
+            for (; i < s.Length; i++)
+            {
+                int d = s[i] - '0';
+                if ((uint)d > 9u) return false;
+                acc = acc * 10 + d;
+            }
+            value = neg ? -acc : acc;
+            return true;
+        }
+
+        private static bool TryParseDoubleFast(string s, out double value)
+        {
+            value = 0d;
+            if (string.IsNullOrEmpty(s)) return false;
+            int i = 0;
+            bool neg = false;
+            if (s[0] == '+' || s[0] == '-') { neg = s[0] == '-'; i = 1; }
+            if (i >= s.Length) return false;
+            long intPart = 0;
+            long fracPart = 0;
+            int fracLen = 0;
+            bool seenDot = false;
+            for (; i < s.Length; i++)
+            {
+                char c = s[i];
+                if (c == '.')
+                {
+                    if (seenDot) return false;
+                    seenDot = true;
+                    continue;
+                }
+                int d = c - '0';
+                if ((uint)d > 9u) return false;
+                if (!seenDot)
+                {
+                    intPart = intPart * 10 + d;
+                }
+                else
+                {
+                    fracPart = fracPart * 10 + d;
+                    fracLen++;
+                }
+            }
+            double frac = fracLen > 0 ? fracPart / Math.Pow(10, fracLen) : 0d;
+            double result = intPart + frac;
+            value = neg ? -result : result;
+            return true;
+        }
+
+        private static bool TryParseDecimalFast(string s, out decimal value)
+        {
+            value = 0m;
+            if (string.IsNullOrEmpty(s)) return false;
+            int i = 0;
+            bool neg = false;
+            if (s[0] == '+' || s[0] == '-') { neg = s[0] == '-'; i = 1; }
+            if (i >= s.Length) return false;
+            long intPart = 0;
+            long fracPart = 0;
+            int fracLen = 0;
+            bool seenDot = false;
+            for (; i < s.Length; i++)
+            {
+                char c = s[i];
+                if (c == '.')
+                {
+                    if (seenDot) return false;
+                    seenDot = true;
+                    continue;
+                }
+                int d = c - '0';
+                if ((uint)d > 9u) return false;
+                if (!seenDot)
+                {
+                    intPart = intPart * 10 + d;
+                }
+                else
+                {
+                    fracPart = fracPart * 10 + d;
+                    fracLen++;
+                }
+            }
+            decimal frac = fracLen > 0 ? fracPart / (decimal)Math.Pow(10, fracLen) : 0m;
+            decimal result = intPart + frac;
+            value = neg ? -result : result;
+            return true;
+        }
+
+        private static bool TryParseFloatFast(string s, out float value)
+        {
+            value = 0f;
+            if (string.IsNullOrEmpty(s)) return false;
+            int i = 0;
+            bool neg = false;
+            if (s[0] == '+' || s[0] == '-') { neg = s[0] == '-'; i = 1; }
+            if (i >= s.Length) return false;
+            long intPart = 0;
+            long fracPart = 0;
+            int fracLen = 0;
+            bool seenDot = false;
+            for (; i < s.Length; i++)
+            {
+                char c = s[i];
+                if (c == '.')
+                {
+                    if (seenDot) return false;
+                    seenDot = true;
+                    continue;
+                }
+                int d = c - '0';
+                if ((uint)d > 9u) return false;
+                if (!seenDot)
+                {
+                    intPart = intPart * 10 + d;
+                }
+                else
+                {
+                    fracPart = fracPart * 10 + d;
+                    fracLen++;
+                }
+            }
+            float frac = fracLen > 0 ? (float)(fracPart / Math.Pow(10, fracLen)) : 0f;
+            float result = intPart + frac;
+            value = neg ? -result : result;
+            return true;
+        }
     }
 }

@@ -37,6 +37,8 @@ using System.Globalization;
 using System.Reflection;
 using System.Text;
 using ObjectInfo.Infrastructure;
+using System.Collections.Concurrent;
+using System.Linq.Expressions;
 
 namespace ObjectInfo.Models.PropInfo
 {
@@ -57,6 +59,9 @@ namespace ObjectInfo.Models.PropInfo
         public object Value { get; set; }
         public List<ITypeInfo> CustomAttrs { get; set; }
 
+        private static readonly ConcurrentDictionary<Type, Func<object, object, CultureInfo, string>> s_formatForInputCache = new ConcurrentDictionary<Type, Func<object, object, CultureInfo, string>>();
+        private static readonly ConcurrentDictionary<Type, Func<object, CultureInfo, string>> s_toOptionValueCache = new ConcurrentDictionary<Type, Func<object, CultureInfo, string>>();
+
         /// <summary>
         /// Formats the current <see cref="Value"/> using invariant, stable rules provided by <see cref="TypeTraits{T}"/>.
         /// This is intended for UI and logging where culture-independent output is required.
@@ -76,23 +81,51 @@ namespace ObjectInfo.Models.PropInfo
             var runtimeType = Value.GetType();
             var nonNullable = Nullable.GetUnderlyingType(runtimeType) ?? runtimeType;
 
-            // Resolve TypeTraits<T> for the runtime type and call appropriate method via reflection to avoid making PropInfo generic.
-            var traitsType = typeof(TypeTraits<>).MakeGenericType(nonNullable);
-
-            // Prefer FormatForInput when available; fallback to ToOptionValueString for enums; otherwise ToString().
             var useCulture = culture ?? CultureInfo.InvariantCulture;
-            var formatForInput = traitsType.GetMethod("FormatForInput", BindingFlags.Public | BindingFlags.Static);
-            if (formatForInput != null)
+
+            // Try cached compiled delegate for FormatForInput
+            var formatter = s_formatForInputCache.GetOrAdd(nonNullable, t =>
             {
-                var formatted = formatForInput.Invoke(null, new object[] { Value, kindOverride, useCulture }) as string;
-                return formatted ?? string.Empty;
+                var traitsType = typeof(TypeTraits<>).MakeGenericType(t);
+                var method = traitsType.GetMethod("FormatForInput", BindingFlags.Public | BindingFlags.Static);
+                if (method == null) return null;
+                // Build lambda: (object value, object kindOverride, CultureInfo culture) => TypeTraits<T>.FormatForInput((T)value, kindOverride, culture)
+                var valueParam = Expression.Parameter(typeof(object), "value");
+                var kindParam = Expression.Parameter(typeof(object), "kind");
+                var cultureParam = Expression.Parameter(typeof(CultureInfo), "culture");
+                var call = Expression.Call(method,
+                    Expression.Convert(valueParam, t),
+                    kindParam,
+                    cultureParam);
+                var lambda = Expression.Lambda<Func<object, object, CultureInfo, string>>(call, valueParam, kindParam, cultureParam);
+                return lambda.Compile();
+            });
+
+            if (formatter != null)
+            {
+                var s = formatter(Value, kindOverride, useCulture);
+                return s ?? string.Empty;
             }
 
-            var toOption = traitsType.GetMethod("ToOptionValueString", BindingFlags.Public | BindingFlags.Static);
+            // Fallback to ToOptionValueString via cached delegate
+            var toOption = s_toOptionValueCache.GetOrAdd(nonNullable, t =>
+            {
+                var traitsType = typeof(TypeTraits<>).MakeGenericType(t);
+                var method = traitsType.GetMethod("ToOptionValueString", BindingFlags.Public | BindingFlags.Static);
+                if (method == null) return null;
+                var valueParam = Expression.Parameter(typeof(object), "value");
+                var cultureParam = Expression.Parameter(typeof(CultureInfo), "culture");
+                var call = Expression.Call(method,
+                    Expression.Convert(valueParam, t),
+                    cultureParam);
+                var lambda = Expression.Lambda<Func<object, CultureInfo, string>>(call, valueParam, cultureParam);
+                return lambda.Compile();
+            });
+
             if (toOption != null)
             {
-                var formatted = toOption.Invoke(null, new object[] { Value, useCulture }) as string;
-                return formatted ?? string.Empty;
+                var s = toOption(Value, useCulture);
+                return s ?? string.Empty;
             }
 
             return Value.ToString() ?? string.Empty;

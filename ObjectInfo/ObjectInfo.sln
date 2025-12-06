@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.5.33502.453
+# Visual Studio Version 18
+VisualStudioVersion = 18.3.11222.16 d18.3
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ObjectInfo", "ObjectInfo\ObjectInfo.csproj", "{33FCD6F6-ABEF-4F74-A7CD-D4D45E28F7DF}"
 EndProject
@@ -69,6 +69,8 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Rebel.Alliance.Specifications", "Rebel.Alliance.Specifications", "{988D60BE-4747-4231-8ACD-9DF9482B349A}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rebel.Alliance.Specification.Dapper.Tests", "Rebel.Alliance.Specification.Dapper.Tests\Rebel.Alliance.Specification.Dapper.Tests.csproj", "{5E30CD1E-5E51-419C-9AA6-69880EC8725F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BenchmarkSuite1", "BenchmarkSuite1\BenchmarkSuite1.csproj", "{A20861A9-411E-6150-BF5C-69E8196E5D22}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -152,6 +154,10 @@ Global
 		{5E30CD1E-5E51-419C-9AA6-69880EC8725F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5E30CD1E-5E51-419C-9AA6-69880EC8725F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5E30CD1E-5E51-419C-9AA6-69880EC8725F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A20861A9-411E-6150-BF5C-69E8196E5D22}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A20861A9-411E-6150-BF5C-69E8196E5D22}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A20861A9-411E-6150-BF5C-69E8196E5D22}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A20861A9-411E-6150-BF5C-69E8196E5D22}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
