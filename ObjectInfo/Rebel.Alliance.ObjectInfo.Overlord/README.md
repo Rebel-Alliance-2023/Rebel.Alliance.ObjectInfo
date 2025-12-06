@@ -1,6 +1,6 @@
 # Rebel.Alliance.ObjectInfo.Overlord
 
-![RebelAlliance](/Rebel.Alliance.Icon.01.png)
+![RebelAlliance](Rebel.Alliance.Icon.01.png)
 
 A thread-safe, high-performance metadata management system that extends the ObjectInfo ecosystem with advanced type scanning, caching, and analysis capabilities.
 
