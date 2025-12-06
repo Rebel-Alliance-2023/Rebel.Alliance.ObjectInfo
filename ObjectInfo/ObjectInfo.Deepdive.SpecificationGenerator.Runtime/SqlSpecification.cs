@@ -163,13 +163,26 @@ namespace ObjectInfo.Deepdive.SpecificationGenerator.Runtime
             {
                 AddWhereClause(clause);
             }
-            _parameters.Add(parameterName, value);
+            _parameters.Add(parameterName, NormalizeParameterValue(value));
         }
 
         /// <summary>
         /// Gets a unique parameter name
         /// </summary>
         protected string GetUniqueParameterName(string baseName) => $"@{baseName}{_parameterIndex++}";
+
+        // Normalize parameter values for consistent Dapper behavior
+        protected static object NormalizeParameterValue(object value)
+        {
+            if (value == null) return DBNull.Value;
+            var t = value.GetType();
+            if (t.IsEnum)
+            {
+                var underlying = Enum.GetUnderlyingType(t);
+                return Convert.ChangeType(value, underlying, System.Globalization.CultureInfo.InvariantCulture);
+            }
+            return value;
+        }
 
         // Extension methods for Dapper-specific functionality
         public virtual async Task<IEnumerable<T>> QueryAsync(
@@ -314,5 +327,6 @@ namespace ObjectInfo.Deepdive.SpecificationGenerator.Runtime
             var whereIndex = sql.IndexOf(" WHERE ", StringComparison.OrdinalIgnoreCase);
             return whereIndex >= 0 ? sql.Substring(whereIndex + 7) : string.Empty;
         }
+
     }
 }
