@@ -226,6 +226,7 @@ namespace ObjectInfo.Deepdive.SpecificationGenerator.Runtime
                 transaction);
         }
 
+
         /// <summary>
         /// Concrete implementation for testing purposes only
         /// </summary>
