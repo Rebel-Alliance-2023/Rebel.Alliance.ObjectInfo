@@ -239,7 +239,7 @@ namespace ObjectInfo.Deepdive.SpecificationGenerator.Core.Emitters
             builder.AppendLine("        private void AddParameterizedWhereClause(string clause, string parameterName, object value)");
             builder.AppendLine("        {");
             builder.AppendLine("            AddWhereClause(clause);");
-            builder.AppendLine("            _parameters.Add(parameterName, value);");
+            builder.AppendLine("            _parameters.Add(parameterName, NormalizeParameterValue(value));");
             builder.AppendLine("        }");
             builder.AppendLine();
 
@@ -251,6 +251,20 @@ namespace ObjectInfo.Deepdive.SpecificationGenerator.Core.Emitters
             builder.AppendLine("                parameters.Add(param.Key, param.Value);");
             builder.AppendLine("            }");
             builder.AppendLine("            return parameters;");
+            builder.AppendLine("        }");
+            builder.AppendLine();
+
+            // Helper for stable parameter normalization (enums -> underlying)
+            builder.AppendLine("        private static object NormalizeParameterValue(object value)");
+            builder.AppendLine("        {");
+            builder.AppendLine("            if (value == null) return DBNull.Value;");
+            builder.AppendLine("            var t = value.GetType();");
+            builder.AppendLine("            if (t.IsEnum)");
+            builder.AppendLine("            {");
+            builder.AppendLine("                var underlying = Enum.GetUnderlyingType(t);");
+            builder.AppendLine("                return Convert.ChangeType(value, underlying, System.Globalization.CultureInfo.InvariantCulture);");
+            builder.AppendLine("            }");
+            builder.AppendLine("            return value;");
             builder.AppendLine("        }");
             builder.AppendLine();
         }

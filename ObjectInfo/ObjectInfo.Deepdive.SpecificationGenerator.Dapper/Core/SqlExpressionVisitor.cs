@@ -1,6 +1,8 @@
 using System.Text;
 using System.Collections;
 using System.Reflection;
+using System.Collections.Concurrent;
+using System.Globalization;
 using Rebel.Alliance.Specification.Dapper.Core;
 
 namespace Rebel.Alliance.Specification.Dapper.Core
@@ -10,6 +12,10 @@ namespace Rebel.Alliance.Specification.Dapper.Core
         protected readonly StringBuilder _sqlBuilder = new();
         private readonly IParameterManager _parameters;
         private readonly SqlSpecification<T> _specification;
+        // Cache for compiled member/constant accessors to avoid repeated Lambda.Compile()
+        private readonly ConcurrentDictionary<Expression, Delegate> _valueAccessCache = new();
+        // Cache for column name resolution
+        private readonly ConcurrentDictionary<MemberInfo, string> _columnNameCache = new();
 
         public SqlExpressionVisitor(SqlSpecification<T> specification)
         {
@@ -71,7 +77,7 @@ namespace Rebel.Alliance.Specification.Dapper.Core
         {
             if (node.Expression is ParameterExpression)
             {
-                var columnName = GetColumnName(node.Member);
+                var columnName = GetColumnNameCached(node.Member);
                 
                 if (node.Type == typeof(bool))
                 {
@@ -85,15 +91,17 @@ namespace Rebel.Alliance.Specification.Dapper.Core
                 return node;
             }
 
-            var value = Expression.Lambda(node).Compile().DynamicInvoke();
-            var paramName = _parameters.CreateParameter(value);
+            var value = GetValueFast(node);
+            var normalized = NormalizeParameterValue(value);
+            var paramName = _parameters.CreateParameter(normalized);
             _sqlBuilder.Append(paramName);
             return node;
         }
 
         protected override Expression VisitConstant(ConstantExpression node)
         {
-            var paramName = _parameters.CreateParameter(node.Value!);
+            var normalized = NormalizeParameterValue(node.Value);
+            var paramName = _parameters.CreateParameter(normalized);
             _sqlBuilder.Append(paramName);
             return node;
         }
@@ -138,12 +146,12 @@ namespace Rebel.Alliance.Specification.Dapper.Core
 
             if (node.Method.IsStatic)
             {
-                collection = (IEnumerable)Expression.Lambda(node.Arguments[0]).Compile().DynamicInvoke()!;
+                collection = (IEnumerable)(GetValueFast(node.Arguments[0]) ?? throw new InvalidOperationException("Collection is null"));
                 itemExpr = node.Arguments[1];
             }
             else
             {
-                collection = (IEnumerable)Expression.Lambda(node.Object!).Compile().DynamicInvoke()!;
+                collection = (IEnumerable)(GetValueFast(node.Object!) ?? throw new InvalidOperationException("Collection is null"));
                 itemExpr = node.Arguments[0];
             }
 
@@ -152,13 +160,13 @@ namespace Rebel.Alliance.Specification.Dapper.Core
             var values = collection.Cast<object>().ToList();
             if (!values.Any()) return node;
 
-            string columnName = GetColumnName(GetMemberInfo(itemExpr));
+            string columnName = GetColumnNameCached(GetMemberInfo(itemExpr));
             _sqlBuilder.Append(columnName).Append(" IN (");
 
             var parameters = new List<string>();
             foreach (var item in values)
             {
-                parameters.Add(_parameters.CreateParameter(item));
+                parameters.Add(_parameters.CreateParameter(NormalizeParameterValue(item)));
             }
 
             _sqlBuilder.Append(string.Join(", ", parameters)).Append(')');
@@ -232,11 +240,11 @@ namespace Rebel.Alliance.Specification.Dapper.Core
             };
         }
 
-        private static string GetColumnName(MemberInfo memberInfo)
+        private string GetColumnNameCached(MemberInfo memberInfo)
         {
             // Respect [Column] attribute if present for proper DB column mapping
             var columnAttr = memberInfo.GetCustomAttribute<System.ComponentModel.DataAnnotations.Schema.ColumnAttribute>();
-            return columnAttr?.Name ?? memberInfo.Name;
+            return _columnNameCache.GetOrAdd(memberInfo, _ => columnAttr?.Name ?? memberInfo.Name);
         }
 
         private static MemberInfo GetMemberInfo(Expression expression)
@@ -247,6 +255,26 @@ namespace Rebel.Alliance.Specification.Dapper.Core
                 UnaryExpression u when u.Operand is MemberExpression m => m.Member,
                 _ => throw new InvalidOperationException($"Cannot get member info from expression type: {expression.GetType()}")
             };
+        }
+
+        private object GetValueFast(Expression expr)
+        {
+            // Cache compiled lambda delegates per expression
+            var del = _valueAccessCache.GetOrAdd(expr, e => Expression.Lambda(e).Compile());
+            return del.DynamicInvoke();
+        }
+
+        private static object NormalizeParameterValue(object value)
+        {
+            if (value == null) return DBNull.Value;
+            var t = value.GetType();
+            if (t.IsEnum)
+            {
+                var underlying = Enum.GetUnderlyingType(t);
+                return Convert.ChangeType(value, underlying, CultureInfo.InvariantCulture);
+            }
+            // Keep DateTime and numeric as-is; strings unchanged
+            return value;
         }
     }
 }
