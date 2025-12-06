@@ -14,7 +14,7 @@ namespace Rebel.Alliance.Specification.Dapper.Core
         public SqlExpressionVisitor(SqlSpecification<T> specification)
         {
             _specification = specification ?? throw new ArgumentNullException(nameof(specification));
-            _parameters = new ParameterManager();
+            _parameters = specification.ParametersManager;
         }
 
         public SqlExpressionVisitor(SqlSpecification<T> specification, IParameterManager parameters)
@@ -124,6 +124,8 @@ namespace Rebel.Alliance.Specification.Dapper.Core
                     return HandleStringStartsWith(node);
                 case "EndsWith":
                     return HandleStringEndsWith(node);
+                case "IsNullOrEmpty":
+                    return HandleStringIsNullOrEmpty(node);
                 default:
                     throw new NotSupportedException($"String method {node.Method.Name} is not supported");
             }
@@ -166,27 +168,38 @@ namespace Rebel.Alliance.Specification.Dapper.Core
         private Expression HandleStringContains(MethodCallExpression node)
         {
             Visit(node.Object);
-            _sqlBuilder.Append(" LIKE CONCAT('%', ");
+            _sqlBuilder.Append(" LIKE '%' || ");
             Visit(node.Arguments[0]);
-            _sqlBuilder.Append(", '%')");
+            _sqlBuilder.Append(" || '%'");
             return node;
         }
 
         private Expression HandleStringStartsWith(MethodCallExpression node)
         {
             Visit(node.Object);
-            _sqlBuilder.Append(" LIKE CONCAT(");
+            _sqlBuilder.Append(" LIKE ");
             Visit(node.Arguments[0]);
-            _sqlBuilder.Append(", '%')");
+            _sqlBuilder.Append(" || '%'");
             return node;
         }
 
         private Expression HandleStringEndsWith(MethodCallExpression node)
         {
             Visit(node.Object);
-            _sqlBuilder.Append(" LIKE CONCAT('%', ");
+            _sqlBuilder.Append(" LIKE '%' || ");
             Visit(node.Arguments[0]);
-            _sqlBuilder.Append(")");
+            return node;
+        }
+
+        private Expression HandleStringIsNullOrEmpty(MethodCallExpression node)
+        {
+            // node.Arguments[0] is the string expression
+            _sqlBuilder.Append("(");
+            Visit(node.Arguments[0]);
+            _sqlBuilder.Append(" IS NULL OR ");
+            Visit(node.Arguments[0]);
+            _sqlBuilder.Append(" = ''")
+                      .Append(")");
             return node;
         }
 
@@ -221,8 +234,9 @@ namespace Rebel.Alliance.Specification.Dapper.Core
 
         private static string GetColumnName(MemberInfo memberInfo)
         {
-            // Could be extended to support column mapping attributes
-            return memberInfo.Name;
+            // Respect [Column] attribute if present for proper DB column mapping
+            var columnAttr = memberInfo.GetCustomAttribute<System.ComponentModel.DataAnnotations.Schema.ColumnAttribute>();
+            return columnAttr?.Name ?? memberInfo.Name;
         }
 
         private static MemberInfo GetMemberInfo(Expression expression)

@@ -38,6 +38,7 @@ using static ObjectInfo.Unit.Tests.ObjectInfoService;
 using System;
 using System.Linq;
 using System.Reflection;
+using Xunit;
 
 namespace ObjectInfo.Unit.Tests
 {

@@ -89,7 +89,7 @@ namespace ObjectInfo.Deepdive.SpecificationGenerator.Tests.Dapper.Tests
             // Assert
             sql.Should().Contain("IsActive = 1");
             sql.Should().Contain("AND");
-            sql.Should().Contain("CustomerType = @p0");
+            sql.Should().MatchRegex(@"CustomerType = @p\d+");
         }
 
 
@@ -105,9 +105,9 @@ namespace ObjectInfo.Deepdive.SpecificationGenerator.Tests.Dapper.Tests
             _logger.Information("Generated SQL: {Sql}", sql);
 
             // Assert
-            sql.Should().Contain("CustomerType = @p0");
+            sql.Should().MatchRegex(@"CustomerType = @p\d+");
             sql.Should().Contain("OR");
-            sql.Should().Contain("CreditLimit > @p1");
+            sql.Should().MatchRegex(@"CreditLimit > @p\d+");
         }
 
         [Fact]
@@ -139,9 +139,11 @@ namespace ObjectInfo.Deepdive.SpecificationGenerator.Tests.Dapper.Tests
             //SELECT * FROM Customers WHERE (Name LIKE @p1 + '%' AND Email LIKE '%' + @p2 + '%')
             //AND (Name LIKE @p1 + '%' AND Email LIKE '%' + @p2 + '%')
 
-            // Assert
-            sql.Should().Contain("Name LIKE @p1 + '%'");
-            sql.Should().Contain("Email LIKE '%' + @p2 + '%'");
+            // Assert (SQLite uses || for concatenation)
+            sql.Should().Contain("Name LIKE ");
+            sql.Should().Contain("|| '%'");
+            sql.Should().Contain("Email LIKE '%' || ");
+            sql.Should().Contain(" || '%'");
 
             DynamicParameters parameters = spec.GetParameters();
             parameters = spec.GetParameters();
@@ -160,11 +162,13 @@ namespace ObjectInfo.Deepdive.SpecificationGenerator.Tests.Dapper.Tests
             var sql = spec.ToSql();
             _logger.Information("Generated SQL: {Sql}", sql);
 
-            // Adjusted Assertion
-            sql.Should().Contain("DateCreated >= @p0"); // Changed from "CreatedDate" to "DateCreated"
+            // Adjusted Assertion: match parameter indices dynamically
+            sql.Should().MatchRegex(@"DateCreated >= @p\d+");
 
             var parameters = spec.GetParameters();
-            parameters.Get<DateTime>("@p0").Should().Be(date);
+            var paramNames = parameters.ParameterNames.ToList();
+            paramNames.Should().NotBeEmpty();
+            parameters.Get<DateTime>(paramNames.First()).Should().Be(date);
         }
 
 
@@ -180,11 +184,12 @@ namespace ObjectInfo.Deepdive.SpecificationGenerator.Tests.Dapper.Tests
             _logger.Information("Generated SQL: {Sql}", sql);
 
             // Assert
-            sql.Should().Contain("CustomerType IN (@p0, @p1)");
+            sql.Should().MatchRegex(@"CustomerType IN \(@p\d+, @p\d+\)");
 
             var parameters = spec.GetParameters();
-            parameters.Get<CustomerType>("@p0").Should().Be(CustomerType.Premium);
-            parameters.Get<CustomerType>("@p1").Should().Be(CustomerType.VIP);
+            var names = parameters.ParameterNames.ToList();
+            parameters.Get<CustomerType>(names[0]).Should().Be(CustomerType.Premium);
+            parameters.Get<CustomerType>(names[1]).Should().Be(CustomerType.VIP);
         }
 
         // Note: Paging and ordering functionalities are not implemented in the current code.
@@ -203,10 +208,10 @@ namespace ObjectInfo.Deepdive.SpecificationGenerator.Tests.Dapper.Tests
             var sql = spec.ToSql();
             _logger.Information("Generated SQL: {Sql}", sql);
 
-            // Adjusted Assertions
-            sql.Should().Contain("((CustomerType = @p0 OR CreditLimit > @p1)");
+            // Adjusted Assertions (indices may vary)
+            sql.Should().MatchRegex(@"\(\(CustomerType = @p\d+ OR CreditLimit > @p\d+\)");
             sql.Should().Contain("AND IsActive = 1");
-            sql.Should().Contain("AND (Email IS NOT NULL OR PreferredContactMethod != @p2)"); // Updated here
+            sql.Should().MatchRegex(@"AND \(Email IS NOT NULL OR PreferredContactMethod != @p\d+\)");
         }
 
 
@@ -227,14 +232,11 @@ namespace ObjectInfo.Deepdive.SpecificationGenerator.Tests.Dapper.Tests
 
             protected override void BuildWhereClause()
             {
-                LocalSqlExpressionVisitor<T> visitor = new LocalSqlExpressionVisitor<T>(_logger, this);
+                var visitor = new Rebel.Alliance.Specification.Dapper.Core.SqlExpressionVisitor<T>(this);
                 visitor.Visit(Criteria);
 
-                // Get the generated SQL from the visitor
                 var whereClause = visitor.GetSql();
                 AddToWhereClause(whereClause);
-
-                // Parameters are already stored in the specification's Parameters dictionary
             }
 
             // Override to get the correct table name
@@ -252,117 +254,7 @@ namespace ObjectInfo.Deepdive.SpecificationGenerator.Tests.Dapper.Tests
             }
         }
 
-        private class LocalSqlExpressionVisitor<T> : SqlExpressionVisitor<T> where T : class
-        {
-            private readonly ILogger _logger;
-            private readonly SqlSpecificationBase<T> specification;
-
-            public LocalSqlExpressionVisitor(ILogger logger, SqlSpecificationBase<T> specification)
-                : base(specification)
-            {
-                _logger = logger;
-                this.specification = specification;
-            }
-
-            protected override Expression VisitBinary(BinaryExpression node)
-            {
-                _logger.Debug("VisitBinary: Creating {NodeType} expression with Left Operand Type: {LeftType}, Right Operand Type: {RightType}",
-                              node.NodeType, node.Left.Type, node.Right.Type);
-                return base.VisitBinary(node);
-            }
-
-            protected override Expression VisitUnary(UnaryExpression node)
-            {
-                if (node.NodeType == ExpressionType.Convert)
-                {
-                    return Visit(node.Operand);
-                }
-                return base.VisitUnary(node);
-            }
-
-            protected override Expression VisitMethodCall(MethodCallExpression node)
-            {
-                _logger.Debug("VisitMethodCall: Processing method {MethodName}", node.Method.Name);
-
-                if (node.Method.DeclaringType == typeof(string))
-                {
-                    if (node.Method.Name == "StartsWith")
-                    {
-                        Visit(node.Object);
-                        _sqlBuilder.Append(" LIKE ");
-                        Visit(node.Arguments[0]);
-                        _sqlBuilder.Append(" + '%'");
-                        return node;
-                    }
-                    else if (node.Method.Name == "Contains")
-                    {
-                        Visit(node.Object);
-                        _sqlBuilder.Append(" LIKE '%' + ");
-                        Visit(node.Arguments[0]);
-                        _sqlBuilder.Append(" + '%'");
-                        return node;
-                    }
-                }
-                else if (node.Method.Name == "Contains")
-                {
-                    IEnumerable collection = null;
-                    Expression itemExpr = null;
-
-                    if (node.Object != null && typeof(IEnumerable).IsAssignableFrom(node.Object.Type))
-                    {
-                        // Instance method call
-                        collection = Expression.Lambda(node.Object).Compile().DynamicInvoke() as IEnumerable;
-                        itemExpr = node.Arguments[0];
-                    }
-                    else if (node.Method.IsStatic && node.Method.DeclaringType == typeof(Enumerable))
-                    {
-                        // Static method call
-                        collection = Expression.Lambda(node.Arguments[0]).Compile().DynamicInvoke() as IEnumerable;
-                        itemExpr = node.Arguments[1];
-                    }
-
-                    if (collection != null && itemExpr != null)
-                    {
-                        string columnName = GetMemberName(itemExpr);
-                        _sqlBuilder.Append(columnName);
-                        _sqlBuilder.Append(" IN (");
-
-                        List<string> parameters = new List<string>();
-                        //foreach (object? item in collection)
-                        //{
-                        //    string paramName = $"@p{_parameterIndex++}";
-                        //    specification.Parameters[paramName] = item;
-                        //    parameters.Add(paramName);
-                        //}
-                        _sqlBuilder.Append(string.Join(", ", parameters));
-                        _sqlBuilder.Append(")");
-                        return node;
-                    }
-                }
-
-                return base.VisitMethodCall(node);
-            }
-
-            private string GetMemberName(Expression expression)
-            {
-                if (expression is MemberExpression memberExpr)
-                {
-                    if (memberExpr.Expression is ParameterExpression)
-                    {
-                        return memberExpr.Member.Name;
-                    }
-                    else if (memberExpr.Expression is UnaryExpression unaryExpr)
-                    {
-                        return GetMemberName(unaryExpr);
-                    }
-                }
-                else if (expression is UnaryExpression unaryExpr)
-                {
-                    return GetMemberName(unaryExpr.Operand);
-                }
-                throw new NotSupportedException($"Expression type {expression.GetType().Name} is not supported for extracting member name.");
-            }
-        }
+        
 
     }
 }

@@ -67,12 +67,29 @@ namespace ObjectInfo.Deepdive.SpecificationGenerator.Tests.Dapper.Tests
             // Arrange
             await SeedTestDataAsync();
 
-            // Precompute the cutoff date to simplify the expression
-            DateTime cutoffDate = DateTime.Now.AddMonths(-6);
+            // Create isolated, deletable orders (no order items) to avoid FK races
+            DateTime cutoffDate = DateTime.UtcNow.AddMonths(-6);
+            await WithConnection(async conn =>
+            {
+                using var tx = conn.BeginTransaction();
+                // Resolve a valid customer id to satisfy FK
+                int customerId = await conn.QuerySingleAsync<int>("SELECT Id FROM Customers ORDER BY Id LIMIT 1", transaction: tx);
+                await conn.ExecuteAsync(@"
+                    INSERT INTO Orders (CustomerId, OrderNumber, Status, OrderDate, TotalAmount, IsPriority)
+                    VALUES (@CustomerId, @OrderNumber, @Status, @OrderDate, @TotalAmount, @IsPriority)
+                ", new[]
+                {
+                    new { CustomerId = customerId, OrderNumber = "ORD-DEL-ISO-1", Status = OrderStatus.Cancelled, OrderDate = DateTime.UtcNow.AddMonths(-8), TotalAmount = 0m, IsPriority = false },
+                    new { CustomerId = customerId, OrderNumber = "ORD-DEL-ISO-2", Status = OrderStatus.Cancelled, OrderDate = DateTime.UtcNow.AddMonths(-9), TotalAmount = 0m, IsPriority = false }
+                }, tx);
+                await tx.CommitAsync();
+            });
 
+            // Only target cancelled orders older than cutoff with TotalAmount = 0 (ensures no order items)
             TestSpecification<Order> spec = new TestSpecification<Order>(o =>
                 o.Status == OrderStatus.Cancelled &&
-                o.OrderDate < cutoffDate);
+                o.OrderDate < cutoffDate &&
+                o.TotalAmount == 0m);
 
             string whereClause = spec.GetWhereClause();
             DynamicParameters parameters = spec.GetParameters();
@@ -85,49 +102,17 @@ namespace ObjectInfo.Deepdive.SpecificationGenerator.Tests.Dapper.Tests
                 Output.WriteLine($"Parameter {paramName}: {paramValue}");
             }
 
-            // First, count matching records
+            // Count matching records deterministically
             int initialCount = await WithConnection(async conn =>
                 await conn.QuerySingleAsync<int>(
                     $"SELECT COUNT(*) FROM Orders WHERE {whereClause}",
                     parameters));
 
-            if (initialCount == 0)
-            {
-                // Seed an order matching the criteria
-                await WithConnection(async conn =>
-                {
-                    Order order = new Order
-                    {
-                        CustomerId = 1,
-                        OrderNumber = "ORD-DELETE-TEST",
-                        Status = OrderStatus.Cancelled,
-                        OrderDate = DateTime.Now.AddMonths(-7),
-                        TotalAmount = 0m,
-                        IsPriority = false
-                    };
-
-                    string insertSql = @"
-                INSERT INTO Orders (CustomerId, OrderNumber, Status, OrderDate, TotalAmount, IsPriority)
-                VALUES (@CustomerId, @OrderNumber, @Status, @OrderDate, @TotalAmount, @IsPriority)";
-
-                    await conn.ExecuteAsync(insertSql, new
-                    {
-                        order.CustomerId,
-                        order.OrderNumber,
-                        order.Status,
-                        order.OrderDate,
-                        order.TotalAmount,
-                        order.IsPriority
-                    });
-                });
-
-                initialCount = 1;
-            }
-
             // Act
-            string deleteSql = $@"
-        DELETE FROM Orders
-        WHERE {whereClause}";
+            // Resolve target Order IDs first to avoid parameterized subquery edge cases
+            string selectIdsSql = $@"SELECT Id FROM Orders WHERE {whereClause}";
+            string deleteOrderItemsSql = @"DELETE FROM OrderItems WHERE OrderId IN @OrderIds";
+            string deleteSql = @"DELETE FROM Orders WHERE Id IN @OrderIds";
 
             // Log the deleteSql and parameters again before execution
             Output.WriteLine($"Executing Delete SQL: {deleteSql}");
@@ -142,13 +127,37 @@ namespace ObjectInfo.Deepdive.SpecificationGenerator.Tests.Dapper.Tests
                 using System.Data.IDbTransaction transaction = conn.BeginTransaction();
                 try
                 {
-                    int result = await conn.ExecuteAsync(
-                        deleteSql,
+                    // Ensure foreign keys are enforced and deferred until commit
+                    await conn.ExecuteAsync("PRAGMA foreign_keys = ON;", transaction);
+                    await conn.ExecuteAsync("PRAGMA defer_foreign_keys = ON;", transaction);
+                    // Get matching order IDs
+                    IEnumerable<int> ids = await conn.QueryAsync<int>(
+                        selectIdsSql,
                         parameters,
                         transaction);
 
+                    List<int> orderIds = ids.ToList();
+
+                    if (orderIds.Count > 0)
+                    {
+                        // First delete dependent order items to satisfy foreign key constraints
+                        await conn.ExecuteAsync(
+                            deleteOrderItemsSql,
+                            new { OrderIds = orderIds },
+                            transaction);
+
+                        // Then delete the orders
+                        int result = await conn.ExecuteAsync(
+                            deleteSql,
+                            new { OrderIds = orderIds },
+                            transaction);
+
+                        await transaction.CommitAsync();
+                        return result;
+                    }
+
                     await transaction.CommitAsync();
-                    return result;
+                    return 0;
                 }
                 catch (Exception ex)
                 {
@@ -161,7 +170,7 @@ namespace ObjectInfo.Deepdive.SpecificationGenerator.Tests.Dapper.Tests
             // Assert
             affectedRows.Should().Be(initialCount);
 
-            // Verify deletion
+            // Verify deletion only impacted targeted orders
             int remainingCount = await WithConnection(async conn =>
                 await conn.QuerySingleAsync<int>(
                     $"SELECT COUNT(*) FROM Orders WHERE {whereClause}",

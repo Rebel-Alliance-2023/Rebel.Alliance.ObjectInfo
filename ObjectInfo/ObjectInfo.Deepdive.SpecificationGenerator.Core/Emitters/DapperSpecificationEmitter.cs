@@ -264,7 +264,7 @@ namespace ObjectInfo.Deepdive.SpecificationGenerator.Core.Emitters
                 // Single async
                 builder.AppendLine($"        public async Task<{entityType}?> FirstOrDefaultAsync(IDbConnection connection, IDbTransaction? transaction = null, CancellationToken cancellationToken = default)");
                 builder.AppendLine("        {");
-                builder.AppendLine("            return await connection.QueryFirstOrDefaultAsync<TEntity>(");
+                builder.AppendLine($"            return await connection.QueryFirstOrDefaultAsync<{entityType}>(");
                 builder.AppendLine("                ToSql(),");
                 builder.AppendLine("                GetParameters(),");
                 builder.AppendLine("                transaction");
@@ -275,7 +275,7 @@ namespace ObjectInfo.Deepdive.SpecificationGenerator.Core.Emitters
                 // Multiple async
                 builder.AppendLine($"        public async Task<IEnumerable<{entityType}>> QueryAsync(IDbConnection connection, IDbTransaction? transaction = null, CancellationToken cancellationToken = default)");
                 builder.AppendLine("        {");
-                builder.AppendLine("            return await connection.QueryAsync<TEntity>(");
+                builder.AppendLine($"            return await connection.QueryAsync<{entityType}>(");
                 builder.AppendLine("                ToSql(),");
                 builder.AppendLine("                GetParameters(),");
                 builder.AppendLine("                transaction");
@@ -286,10 +286,10 @@ namespace ObjectInfo.Deepdive.SpecificationGenerator.Core.Emitters
                 // Count async
                 builder.AppendLine("        public override async Task<int> GetCountAsync(IDbConnection connection, IDbTransaction? transaction = null, CancellationToken cancellationToken = default)");
                 builder.AppendLine("        {");
-                builder.AppendLine("            var countSql = $\"SELECT COUNT(*) FROM [{entityType}]\"");
+                builder.AppendLine($"            var countSql = \"SELECT COUNT(*) FROM [{entityType}]\";");
                 builder.AppendLine("            if (_whereBuilder.Length > 0)");
                 builder.AppendLine("            {");
-                builder.AppendLine("                countSql += $\" WHERE {_whereBuilder}\";");
+                builder.AppendLine("                countSql += \" WHERE \" + _whereBuilder.ToString();");
                 builder.AppendLine("            }");
                 builder.AppendLine();
                 builder.AppendLine("            return await connection.ExecuteScalarAsync<int>(");
